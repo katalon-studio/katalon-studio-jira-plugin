@@ -1,0 +1,10 @@
+<plugin>
+	<extension
+            point="com.katalon.platform.extensions">
+        <point
+                id="com.katalon.plugin.jira.JiraEventListenerInitializer"
+                extensionPointId="com.katalon.platform.api.extension.event"
+                implementationClass="com.katalon.plugin.jira.JiraEventListenerInitializer">
+        </point>
+    </extension>
+</plugin>
