@@ -1,1 +1,8 @@
+#Maven
 /target/
+
+#Eclipse
+/bin/
+
+#IntellJ
+/idea/
