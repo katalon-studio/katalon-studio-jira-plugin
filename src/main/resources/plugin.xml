@@ -7,4 +7,22 @@
                 implementationClass="com.katalon.plugin.jira.JiraEventListenerInitializer">
         </point>
     </extension>
+    <extension
+         point="com.kms.katalon.preferences.ProjectSettingPages">
+      <page
+            name="JIRA"
+            category="com.kms.katalon.composer.preferences.plugin"
+            class="com.kms.katalon.plugin.jira.setting.JiraSettingPage"
+            id="com.kms.katalon.plugin.jira.page">
+      </page>
+   </extension>
+   <extension
+            point="com.katalon.platform.extensions">
+        <point
+                id="com.kms.katalon.plugin.jira.jiraToolItemWithMenu"
+                extensionPointId="com.katalon.platform.api.extension.ui.toolbar.newDropdownToolItem"
+                implementationClass="com.kms.katalon.plugin.jira.toolbar.JiraToolItemDescription">
+        </point>
+    </extension>
+   
 </plugin>

@@ -1,4 +1,4 @@
-package com.katalon.plugin.jira;
+package com.kms.katalon.plugin.jira.event;
 
 import com.katalon.platform.api.extension.event.EventListener;
 import com.katalon.platform.api.extension.event.EventListenerInitializer;
