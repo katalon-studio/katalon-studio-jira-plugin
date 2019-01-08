@@ -17,6 +17,7 @@ import com.katalon.plugin.jira.core.entity.JiraIssue;
 import com.katalon.plugin.jira.core.entity.JiraIssueCollection;
 import com.katalon.plugin.jira.core.entity.JiraReport;
 import com.katalon.plugin.jira.core.util.JsonUtil;
+import com.katalon.plugin.jira.core.util.PlatformUtil;
 
 public class JiraObjectToEntityConverter {
     private static <T extends JiraIntegratedObject> Optional<T> getJiraObject(HasIntegration entity, Class<T> clazz) {
@@ -56,8 +57,8 @@ public class JiraObjectToEntityConverter {
             }
         };
         try {
-            return JiraComponent.getPlatformController(TestCaseController.class)
-                    .updateIntegration(JiraComponent.getCurrentProject(), testCase, jiraIntegratedEntity);
+            return PlatformUtil.getPlatformController(TestCaseController.class)
+                    .updateIntegration(PlatformUtil.getCurrentProject(), testCase, jiraIntegratedEntity);
         } catch (ResourceException e) {
             throw new JiraIntegrationException(e);
         }
@@ -85,8 +86,8 @@ public class JiraObjectToEntityConverter {
             }
         };
         try {
-            return JiraComponent.getPlatformController(ReportController.class)
-                    .updateIntegration(JiraComponent.getCurrentProject(), report, jiraIntegratedEntity);
+            return PlatformUtil.getPlatformController(ReportController.class)
+                    .updateIntegration(PlatformUtil.getCurrentProject(), report, jiraIntegratedEntity);
         } catch (ResourceException e) {
             throw new JiraIntegrationException(e);
         }

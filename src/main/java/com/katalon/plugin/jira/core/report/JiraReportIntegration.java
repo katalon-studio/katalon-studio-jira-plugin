@@ -15,6 +15,7 @@ import com.katalon.plugin.jira.core.JiraComponent;
 import com.katalon.plugin.jira.core.JiraObjectToEntityConverter;
 import com.katalon.plugin.jira.core.constant.JiraIntegrationMessageConstants;
 import com.katalon.plugin.jira.core.entity.JiraIssue;
+import com.katalon.plugin.jira.core.util.PlatformUtil;
 
 import ch.qos.logback.classic.Logger;
 
@@ -33,8 +34,8 @@ public class JiraReportIntegration implements JiraComponent {
             TestCaseRecord child = childRecords.get(index);
             try {
                 JiraIssue issue = JiraObjectToEntityConverter
-                        .getJiraIssue(JiraComponent.getPlatformController(TestCaseController.class)
-                                .getTestCase(JiraComponent.getCurrentProject(), child.getTestCaseId()));
+                        .getJiraIssue(PlatformUtil.getPlatformController(TestCaseController.class)
+                                .getTestCase(PlatformUtil.getCurrentProject(), child.getTestCaseId()));
                 if (issue == null) {
                     continue;
                 }

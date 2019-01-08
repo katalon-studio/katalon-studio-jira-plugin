@@ -1,6 +1,7 @@
 package com.katalon.plugin.jira;
 
 import com.katalon.platform.api.extension.PluginPreferencePage;
+import com.katalon.plugin.jira.composer.preference.JiraSettingPage;
 
 public class JiraPluginPreferencePage implements PluginPreferencePage {
 
@@ -15,8 +16,8 @@ public class JiraPluginPreferencePage implements PluginPreferencePage {
     }
 
     @Override
-    public String getPreferencePageClassName() {
-        return null;
+    public Class<JiraSettingPage> getPreferencePageClass() {
+        return JiraSettingPage.class;
     }
 
 }

@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.atlassian.jira.rest.client.api.domain.User;
 import com.google.gson.reflect.TypeToken;
+import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.preference.PluginPreference;
 import com.katalon.plugin.jira.core.JiraAPIURL;
 import com.katalon.plugin.jira.core.JiraCredential;
@@ -32,7 +33,8 @@ public class JiraIntegrationSettingStore {
 
     private PluginPreference delegate;
 
-    public JiraIntegrationSettingStore(PluginPreference pluginPrefernce) {
+    public JiraIntegrationSettingStore(PluginPreference pluginPreference) {
+        this.delegate = pluginPreference;
     }
 
     public boolean isIntegrationEnabled() throws IOException {
@@ -156,5 +158,9 @@ public class JiraIntegrationSettingStore {
         credential.setUsername(getUsername(authenticationEncrypted));
         credential.setPassword(getPassword(authenticationEncrypted));
         return credential;
+    }
+    
+    public void saveStore() throws ResourceException {
+        delegate.save();
     }
 }

@@ -7,6 +7,7 @@ public class JiraEventListenerInitializer implements EventListenerInitializer {
 
     @Override
     public void registerListener(EventListener eventListener) {
+        
     }
 
 }

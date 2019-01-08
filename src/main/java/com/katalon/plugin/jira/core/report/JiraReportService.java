@@ -23,6 +23,7 @@ import com.katalon.plugin.jira.core.constant.StringConstants;
 import com.katalon.plugin.jira.core.entity.JiraAttachment;
 import com.katalon.plugin.jira.core.entity.JiraIssue;
 import com.katalon.plugin.jira.core.entity.JiraTestResult;
+import com.katalon.plugin.jira.core.util.PlatformUtil;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
@@ -34,8 +35,8 @@ public class JiraReportService implements JiraComponent {
             throws IOException, JiraIntegrationException {
         ReportEntity report = null;
         try {
-            report = JiraComponent.getPlatformController(ReportController.class)
-                    .getReport(JiraComponent.getCurrentProject(), testSuiteRecord.getReportId());
+            report = PlatformUtil.getPlatformController(ReportController.class)
+                    .getReport(PlatformUtil.getCurrentProject(), testSuiteRecord.getReportId());
         } catch (ResourceException e) {
             throw new JiraIntegrationException(e);
         }
@@ -119,7 +120,7 @@ public class JiraReportService implements JiraComponent {
         JiraIssue outwardIssue = null;
         try {
             outwardIssue = JiraObjectToEntityConverter.getJiraIssue(
-                    getTestCase(logRecord.getTestCaseId()));
+                    PlatformUtil.getTestCase(logRecord.getTestCaseId()));
         } catch (ResourceException e) {
             throw new JiraIntegrationException(e);
         }

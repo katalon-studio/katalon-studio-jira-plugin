@@ -10,7 +10,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.katalon.plugin.jira.core.constant.JiraIntegrationMessageConstants;
-import com.katalon.plugin.jira.core.constant.StringConstants;
 
 public class JsonUtil {
 

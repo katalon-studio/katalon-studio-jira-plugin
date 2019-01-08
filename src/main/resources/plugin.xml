@@ -3,8 +3,24 @@
             point="com.katalon.platform.extensions">
         <point
                 id="com.katalon.plugin.jira.JiraEventListenerInitializer"
-                extensionPointId="com.katalon.platform.api.extension.event"
+                extensionPointId="com.katalon.platform.api.extension.eventListener"
                 implementationClass="com.katalon.plugin.jira.JiraEventListenerInitializer">
         </point>
     </extension>
+    <extension
+         point="com.katalon.platform.extensions">
+      <point
+            id="com.katalon.plugin.jira.JiraPluginPreferencePage"
+            extensionPointId="com.katalon.platform.api.extension.pluginPreferencePage"
+            implementationClass="com.katalon.plugin.jira.JiraPluginPreferencePage">
+      </point>
+   </extension>
+   <extension
+   		point="com.katalon.platform.extensions">
+	  <point
+            id="com.katalon.plugin.jira.JiraPluginMenuItem"
+            extensionPointId="com.katalon.platform.api.extension.newDropdownToolItem"
+            implementationClass="com.katalon.plugin.jira.JiraPluginMenuItemDescription">
+      </point>	
+   	</extension>
 </plugin>

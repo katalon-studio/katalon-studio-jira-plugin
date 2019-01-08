@@ -3,12 +3,9 @@ package com.katalon.plugin.jira.core;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-import com.katalon.platform.api.controller.Controller;
-import com.katalon.platform.api.controller.TestCaseController;
 import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.model.ProjectEntity;
 import com.katalon.platform.api.model.ReportEntity;
-import com.katalon.platform.api.model.TestCaseEntity;
 import com.katalon.platform.api.preference.PluginPreference;
 import com.katalon.platform.api.report.TestCaseRecord;
 import com.katalon.platform.api.service.ApplicationManager;
@@ -19,16 +16,8 @@ import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
 
 public interface JiraComponent {
 
-    static ProjectEntity getCurrentProject() {
+    default ProjectEntity getCurrentProject() {
         return ApplicationManager.getInstance().getProjectManager().getCurrentProject();
-    }
-
-    static <C extends Controller> C getPlatformController(Class<C> clazz) {
-        return ApplicationManager.getInstance().getControllerManager().getController(clazz);
-    }
-    
-    default TestCaseEntity getTestCase(String testCaseId) throws ResourceException {
-        return getPlatformController(TestCaseController.class).getTestCase(getCurrentProject(), testCaseId);
     }
 
     default JiraIntegrationSettingStore getSettingStore() {
