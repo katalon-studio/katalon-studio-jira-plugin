@@ -348,6 +348,6 @@ public class JiraReportTestCaseIntegrationView implements JiraUIComponent, TestC
 
     @Override
     public String getName() {
-        return "JIRA Plugin";
+        return "JIRA";
     }
 }

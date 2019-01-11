@@ -12,7 +12,7 @@ public class JiraTestCaseIntegrationViewDescription implements TestCaseIntegrati
 
     @Override
     public String getName() {
-        return "JIRA Plugin";
+        return "JIRA";
     }
 
     @Override
