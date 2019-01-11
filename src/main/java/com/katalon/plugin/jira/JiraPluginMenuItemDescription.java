@@ -1,6 +1,5 @@
 package com.katalon.plugin.jira;
 
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -33,7 +32,7 @@ public class JiraPluginMenuItemDescription implements ToolItemWithMenuDescriptio
     public Menu getMenu(Control parent) {
         Menu menu = new Menu(parent);
         MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
-        menuItem.setText("Import from JIRA JQL");
+        menuItem.setText("Import Test Case from JIRA JQL");
         menuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {

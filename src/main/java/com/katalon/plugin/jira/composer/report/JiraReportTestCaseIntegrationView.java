@@ -23,6 +23,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -33,8 +34,10 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import com.katalon.platform.api.controller.ReportController;
 import com.katalon.platform.api.exception.ResourceException;
+import com.katalon.platform.api.extension.ReportIntegrationViewDescription.TestCaseRecordIntegrationView;
 import com.katalon.platform.api.model.ReportEntity;
 import com.katalon.platform.api.report.TestCaseRecord;
+import com.katalon.platform.api.report.TestSuiteRecord;
 import com.katalon.plugin.jira.composer.JiraUIComponent;
 import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
 import com.katalon.plugin.jira.composer.constant.ImageConstants;
@@ -50,7 +53,7 @@ import com.katalon.plugin.jira.core.entity.JiraIssue;
 import com.katalon.plugin.jira.core.entity.JiraIssueCollection;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
 
-public class JiraReportTestLogView /* extends TestCaseLogDetailsIntegrationView */ implements JiraUIComponent {
+public class JiraReportTestCaseIntegrationView implements JiraUIComponent, TestCaseRecordIntegrationView {
 
     public static final int CLMN_ID_IDEX = 0;
 
@@ -72,8 +75,17 @@ public class JiraReportTestLogView /* extends TestCaseLogDetailsIntegrationView 
 
     private ReportEntity reportEntity;
 
-    public JiraReportTestLogView(ReportEntity reportEntity) {
-        // super(reportEntity);
+    private TestSuiteRecord suiteRecord;
+
+    @Override
+    public Control onCreateView(Composite parent, TestSuiteRecord testSuiteRecord, TestCaseRecord testCaseRecord)
+            throws ResourceException {
+        this.reportEntity = PlatformUtil.getPlatformController(ReportController.class)
+                .getReport(PlatformUtil.getCurrentProject(), testSuiteRecord.getReportId());
+        this.suiteRecord = testSuiteRecord;
+
+        this.logRecord = testCaseRecord;
+        return createContainer(parent);
     }
 
     // @Override
@@ -88,6 +100,8 @@ public class JiraReportTestLogView /* extends TestCaseLogDetailsIntegrationView 
         registerControlModifyListeners();
 
         enableContainer();
+
+        changeTestCase(logRecord);
 
         return container;
     }
@@ -105,7 +119,7 @@ public class JiraReportTestLogView /* extends TestCaseLogDetailsIntegrationView 
 
     private void setInput(TestCaseRecord testCaseLogRecord) {
         try {
-            int index = getTestCaseRecordIndex(logRecord, reportEntity);
+            int index = suiteRecord.getTestCaseRecords().indexOf(testCaseLogRecord);
             Optional<JiraIssueCollection> optionalJiraIssueCollection = JiraObjectToEntityConverter
                     .getOptionalJiraIssueCollection(reportEntity, index);
             jiraIssueCollection = new JiraIssueCollection(testCaseLogRecord.getTestCaseId());
@@ -116,7 +130,7 @@ public class JiraReportTestLogView /* extends TestCaseLogDetailsIntegrationView 
             ReportController reportController = PlatformUtil.getPlatformController(ReportController.class);
             createIssueHandler = new JiraCreateIssueHandler(getShell(),
                     reportController.getTestSuiteRecord(PlatformUtil.getCurrentProject(), reportEntity), logRecord);
-        } catch (ResourceException | JiraIntegrationException ex) {
+        } catch (ResourceException ex) {
             MessageDialog.openError(getShell(), StringConstants.ERROR, ex.getMessage());
         }
     }
@@ -330,5 +344,10 @@ public class JiraReportTestLogView /* extends TestCaseLogDetailsIntegrationView 
         } catch (JiraIntegrationException e) {
             MessageDialog.openError(container.getShell(), StringConstants.ERROR, e.getMessage());
         }
+    }
+
+    @Override
+    public String getName() {
+        return "JIRA Plugin";
     }
 }

@@ -5,7 +5,6 @@ import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.e4.ui.model.application.ui.basic.MPart;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -13,11 +12,14 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.slf4j.LoggerFactory;
 
 import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.katalon.platform.api.extension.TestCaseIntegrationViewDescription.PartActionService;
+import com.katalon.platform.api.extension.TestCaseIntegrationViewDescription.TestCaseIntegrationView;
 import com.katalon.platform.api.model.TestCaseEntity;
 import com.katalon.plugin.jira.composer.JiraUIComponent;
 import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
@@ -28,7 +30,7 @@ import com.katalon.plugin.jira.core.entity.JiraIssue;
 
 import ch.qos.logback.classic.Logger;
 
-public class JiraTestCaseIntegrationView implements JiraUIComponent {
+public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseIntegrationView {
     
     private Logger logger = (Logger) LoggerFactory.getLogger(JiraTestCaseIntegrationView.class);
 
@@ -40,15 +42,10 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent {
 
     private JiraIssue jiraIssue;
 
-    public JiraTestCaseIntegrationView(TestCaseEntity testCaseEntity, MPart mpart) {
-        // super(testCaseEntity, mpart);
+    @Override
+    public Control onCreateView(Composite parent, PartActionService partActionService, TestCaseEntity testCaseEntity) {
         jiraIssue = JiraObjectToEntityConverter.getJiraIssue(testCaseEntity);
-    }
 
-    /**
-     * @wbp.parser.entryPoint
-     */
-    public Composite createContainer(Composite parent) {
         container = new Composite(parent, SWT.BORDER);
         container.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_WHITE));
         container.setBackgroundMode(SWT.INHERIT_FORCE);

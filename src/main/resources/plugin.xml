@@ -23,4 +23,20 @@
             implementationClass="com.katalon.plugin.jira.JiraPluginMenuItemDescription">
       </point>	
    	</extension>
+   	<extension
+         point="com.katalon.platform.extensions">
+      <point
+      		id="com.katalon.plugin.jira.JiraPluginPreferencePage"
+            extensionPointId="com.katalon.platform.api.extension.testCaseIntegrationViewDescription"
+            implementationClass="com.katalon.plugin.jira.JiraTestCaseIntegrationViewDescription">
+      </point>
+   </extension>
+   <extension
+         point="com.katalon.platform.extensions">
+      <point
+      		id="com.katalon.plugin.jira.JiraReportIntegrationViewDescription"
+            extensionPointId="com.katalon.platform.api.extension.reportIntegrationViewDescription"
+            implementationClass="com.katalon.plugin.jira.JiraReportIntegrationViewDescription">
+      </point>
+   </extension>
 </plugin>
