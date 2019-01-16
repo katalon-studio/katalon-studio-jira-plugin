@@ -3,7 +3,7 @@ package com.katalon.plugin.jira.core.constant;
 import org.eclipse.osgi.util.NLS;
 
 public class JiraIntegrationMessageConstants extends NLS {
-    private static final String MESSAGE_FILE_NAME = StringConstants.JIRA_BUNDLE_ID + ".constant.JiraIntegrationMessage";
+    private static final String MESSAGE_FILE_NAME = "JiraIntegrationMessage";
 
     static {
         // initialize resource bundle
