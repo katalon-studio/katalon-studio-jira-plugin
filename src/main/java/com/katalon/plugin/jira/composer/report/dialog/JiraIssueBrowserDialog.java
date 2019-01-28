@@ -93,6 +93,13 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
             @Override
             public void changing(LocationEvent event) {
                 txtBrowserUrl.setText(event.location);
+                try {
+                    if (!loggedIn && isSmartLoginPage(event.location)) {
+                        loggedIn = true;
+                        login();
+                        return;
+                    }
+                } catch (IOException | URISyntaxException | GeneralSecurityException ignore) {}
             }
 
             @Override
@@ -149,19 +156,25 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
     }
 
     private boolean isLoginPage() throws IOException, URISyntaxException, GeneralSecurityException {
-        return htmlLinkProvider.getLoginHTMLLink().startsWith(browser.getUrl());
+        String url = browser.getUrl();
+        return htmlLinkProvider.getLoginHTMLLink().startsWith(url);
+    }
+    
+    private boolean isSmartLoginPage(String url) {
+        return url.contains("smartlock.google.com");
     }
 
     protected void loginForCloud() {
         try {
-            StringBuilder js = new StringBuilder()
-                    .append("document.getElementById(\"username\").value = \""
-                            + StringEscapeUtils.escapeEcmaScript(getCredential().getUsername()) + "\";\n")
-                    .append("document.getElementById(\"password\").value = \""
-                            + StringEscapeUtils.escapeEcmaScript(getCredential().getPassword()) + "\";\n")
-                    .append("document.getElementById(\"remember-me\").checked = true;\n")
-                    .append("document.getElementById(\"login\").click();\n");
-            browser.execute(waitAndExec("remember-me", js.toString()));
+            browser.execute("document.getElementById('username').value = '"
+                    + StringEscapeUtils.escapeEcmaScript(getCredential().getUsername()) + "';");
+            
+            browser.execute("document.getElementById('login-submit').click();");
+            
+            browser.execute("document.getElementById('password').value = '"
+                    + StringEscapeUtils.escapeEcmaScript(getCredential().getPassword()) + "';");
+
+            browser.execute("setTimeout(function waitLoginSubmit(){ document.getElementById('login-submit').click();}, 3000);");
         } catch (IOException | JiraIntegrationException e) {
             logger.error("Unable to login to JIRA cloud", e);
         }
@@ -183,7 +196,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
     }
 
     protected String waitAndExec(String element, String js) {
-        return "function waitUntilExist() {" + "if (document.getElementById(\"" + element + "\") === null) {"
+        return "function waitUntilExist() {" + "if (document.getElementById('" + element + "') === null) {"
                 + "setTimeout(waitUntilExist, 1000);" + "} else {" + js + "}" + "};" + "waitUntilExist();";
     }
 

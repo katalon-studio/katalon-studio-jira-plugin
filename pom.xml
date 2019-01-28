@@ -7,12 +7,12 @@
 	<parent>
 		<groupId>com.katalon</groupId>
 		<artifactId>com.katalon.platform.parent</artifactId>
-		<version>1.0.4</version>
+		<version>1.0.5</version>
 	</parent>
 
 	<groupId>com.katalon</groupId>
 	<artifactId>katalon-studio-jira-plugin</artifactId>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 
 	<packaging>bundle</packaging>
 
@@ -29,7 +29,7 @@
 		<dependency>
 			<groupId>com.katalon</groupId>
 			<artifactId>com.katalon.platform</artifactId>
-			<version>1.0.4</version>
+			<version>1.0.5</version>
 		</dependency>
 
 		<!-- JIRA Plugin dependencies -->
