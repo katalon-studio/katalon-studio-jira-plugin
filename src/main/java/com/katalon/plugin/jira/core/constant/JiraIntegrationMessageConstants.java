@@ -7,7 +7,7 @@ public class JiraIntegrationMessageConstants extends NLS {
 
     static {
         // initialize resource bundle
-        NLS.initializeMessages(MESSAGE_FILE_NAME, JiraIntegrationMessageConstants.class);
+        NLS.initializeMessages("com.katalon.plugin.jira.core.constant." + MESSAGE_FILE_NAME, JiraIntegrationMessageConstants.class);
     }
 
     private JiraIntegrationMessageConstants() {
@@ -20,6 +20,8 @@ public class JiraIntegrationMessageConstants extends NLS {
     public static String MSG_INVALID_REQUEST;
 
     public static String MSG_INVALID_SERVER_URL;
+    
+    public static String MSG_WARN_CONFIGURE_JIRA_SETTINGS;
 
     public static String MSG_ERROR_LOG;
 
