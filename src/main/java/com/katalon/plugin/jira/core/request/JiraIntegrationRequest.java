@@ -45,10 +45,13 @@ import com.katalon.plugin.jira.core.entity.ImprovedIssue;
 import com.katalon.plugin.jira.core.util.ImprovedIssueDeserializer;
 
 public class JiraIntegrationRequest {
-    
+
     private Logger logger = LoggerFactory.getLogger(JiraIntegrationRequest.class);
 
     public String getJiraResponse(JiraCredential credential, String url) throws JiraIntegrationException {
+        if (StringUtils.isEmpty(credential.getServerUrl())) {
+            throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_WARN_CONFIGURE_JIRA_SETTINGS);
+        }
         try (CloseableHttpClient client = HttpClientBuilder.create().setSSLContext(getTrustedSSLContext()).build()) {
             HttpGet request = new HttpGet(url);
 
@@ -70,7 +73,8 @@ public class JiraIntegrationRequest {
 
     protected <T> T getJiraObject(JiraCredential credential, String url, Class<T> clazz)
             throws JiraIntegrationException {
-        Gson gson = new GsonBuilder().registerTypeAdapter(ImprovedIssue.class, new ImprovedIssueDeserializer()).create();
+        Gson gson = new GsonBuilder().registerTypeAdapter(ImprovedIssue.class, new ImprovedIssueDeserializer())
+                .create();
         return gson.fromJson(getJiraResponse(credential, url), clazz);
     }
 
