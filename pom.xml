@@ -29,11 +29,7 @@
 		<dependency>
 			<groupId>com.katalon</groupId>
 			<artifactId>com.katalon.platform</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>
-                ${basedir}/thirdparty/com.katalon.platform-1.0.5.jar
-            </systemPath>
+			<version>1.0.5</version>
 		</dependency>
 
 		<!-- JIRA Plugin dependencies -->
