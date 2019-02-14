@@ -168,6 +168,8 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
         private final String description;
 
         private final String comment;
+        
+        private final static String JIRA_INTEGRATION_TAG = "jira-integration";
 
         public NewTestCaseIssueDescription(String name, String description, String comment) {
             this.name = name;
@@ -189,6 +191,11 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
         public String getComment() {
             return comment;
         }
+
+		@Override
+		public String getTag() {
+			return JIRA_INTEGRATION_TAG;
+		}
 
     }
 }
