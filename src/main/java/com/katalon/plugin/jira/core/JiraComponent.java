@@ -1,7 +1,10 @@
 package com.katalon.plugin.jira.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+
+import org.apache.commons.io.FileUtils;
 
 import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.model.ProjectEntity;
@@ -22,10 +25,23 @@ public interface JiraComponent {
 
     default JiraIntegrationSettingStore getSettingStore() {
         try {
-            PluginPreference pluginPreference = ApplicationManager.getInstance().getPreferenceManager().getPluginPreference(getCurrentProject().getId(),
-                    StringConstants.JIRA_BUNDLE_ID);
-            return pluginPreference != null ? new JiraIntegrationSettingStore(pluginPreference) : null;
-        } catch (ResourceException e) {
+            ProjectEntity currentProject = getCurrentProject();
+            File oldSettingFile = new File(currentProject.getFolderLocation(),
+                    "settings/internal/com.kms.katalon.integration.jira.properties");
+            File newSettingFile = new File(currentProject.getFolderLocation(),
+                    "settings/external/com.katalon.katalon-studio-jira-plugin.properties");
+            if (oldSettingFile.exists() && !newSettingFile.exists()) {
+                FileUtils.copyFile(oldSettingFile, newSettingFile);
+            }
+            PluginPreference pluginPreference = ApplicationManager.getInstance()
+                    .getPreferenceManager()
+                    .getPluginPreference(currentProject.getId(), StringConstants.JIRA_BUNDLE_ID);
+            if (pluginPreference == null) {
+                return null;
+            }
+
+            return new JiraIntegrationSettingStore(pluginPreference);
+        } catch (ResourceException | IOException e) {
             return null;
         }
     }
@@ -45,8 +61,7 @@ public interface JiraComponent {
         JiraObjectToEntityConverter.updateJiraReport(jiraReport, reportEntity);
     }
 
-    default JiraIssueCollection getJiraIssueCollection(int index, TestCaseRecord logRecord,
-            ReportEntity reportEntity) {
+    default JiraIssueCollection getJiraIssueCollection(int index, TestCaseRecord logRecord, ReportEntity reportEntity) {
         return JiraObjectToEntityConverter.getOptionalJiraIssueCollection(reportEntity, index)
                 .map(jiraIssue -> jiraIssue)
                 .orElse(new JiraIssueCollection(logRecord.getTestCaseId()));
