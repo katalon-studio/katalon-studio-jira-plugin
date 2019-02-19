@@ -113,13 +113,13 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                                 ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_IMPORTING_ISSUE,
                                 newTestCaseName));
                         String description = getDescriptionFromIssue(issue);
-                        String comment = getComment(katalonCommentField, issue);
+                        String katalonCustomFieldValue = getComment(katalonCommentField, issue);
                         TestCaseEntity testCase = testCaseController.newTestCase(currentProject, folder,
-                                new NewTestCaseIssueDescription(newTestCaseName, description, comment));
+                                new NewTestCaseIssueDescription(newTestCaseName, description, katalonCustomFieldValue));
 
                         testCase = JiraObjectToEntityConverter.updateTestCase(issue, testCase);
 
-                        String katalonCustomFieldValue = getScriptForComment(comment);
+                        String testCaseScript = getScriptForComment(katalonCustomFieldValue);
                         
                         if (result.isLinkToBddFeatureFile()) {
                             FeatureFileController featureController = PlatformUtil
@@ -132,10 +132,10 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                                     featureFolder, featureFileName);
                             FileUtils.write(systemFile.getFile(), katalonCustomFieldValue);
 
-                            katalonCustomFieldValue = getScriptForFeatureFile(systemFile);
+                            testCaseScript = getScriptForFeatureFile(systemFile);
                         }
 
-                        FileUtils.write(testCase.getScriptFile(), katalonCustomFieldValue, true);
+                        FileUtils.write(testCase.getScriptFile(), testCaseScript, true);
                         testCases.add(testCase);
                         monitor.worked(1);
                     }
