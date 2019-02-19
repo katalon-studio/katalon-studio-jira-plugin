@@ -29,7 +29,6 @@ import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageC
 import com.katalon.plugin.jira.composer.constant.StringConstants;
 import com.katalon.plugin.jira.composer.preference.JiraConnectionJob.JiraConnectionResult;
 import com.katalon.plugin.jira.core.JiraCredential;
-import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraIssueType;
 import com.katalon.plugin.jira.core.entity.JiraProject;
 import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
@@ -54,13 +53,11 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
     private Button btnConnect;
 
-    private Combo cbbIssueTypes, cbbProjects, cbbFields;
+    private Combo cbbIssueTypes, cbbProjects;
 
     private DisplayedComboboxObject<JiraProject> displayedJiraProject;
 
     private DisplayedComboboxObject<JiraIssueType> displayedJiraIssueType;
-    
-    private DisplayedComboboxObject<JiraField> displayedJiraField;
 
     private User user;
 
@@ -102,8 +99,6 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 displayedJiraIssueType = result.getJiraIssueTypes().updateDefaultURIFrom(displayedJiraIssueType);
                 updateCombobox(cbbIssueTypes, displayedJiraIssueType);
 
-                displayedJiraField = result.getJiraFields().updateDefaultURIFrom(displayedJiraField);
-                updateCombobox(cbbFields, displayedJiraField);
                 MessageDialog.openInformation(shell, StringConstants.INFO,
                         MessageFormat.format(ComposerJiraIntegrationMessageConstant.PREF_MSG_ACCOUNT_CONNECTED,
                                 result.getUser().getDisplayName()));
@@ -161,9 +156,6 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
             displayedJiraIssueType = new DisplayedIssueTypeComboboxObject(settingStore.getStoredJiraIssueType());
             updateCombobox(cbbIssueTypes, displayedJiraIssueType);
-
-            displayedJiraField = new DisplayedComboboxObject<>(settingStore.getStoredJiraField());
-            updateCombobox(cbbFields, displayedJiraField);
 
             user = settingStore.getJiraUser();
         } catch (IOException | GeneralSecurityException e) {
@@ -270,12 +262,6 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
         cbbIssueTypes = new Combo(projectAndIssueComposite, SWT.READ_ONLY);
         cbbIssueTypes.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-        
-        Label lblBDDField = new Label(projectAndIssueComposite, SWT.NONE);
-        lblBDDField.setText("BDD Field");
-
-        cbbFields = new Combo(projectAndIssueComposite, SWT.READ_ONLY);
-        cbbFields.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         Composite submitOptionsComposite = new Composite(grpSubmitOptions, SWT.NONE);
         submitOptionsComposite.setLayout(new GridLayout(1, false));
@@ -320,9 +306,6 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
             displayedJiraIssueType.setDefaultObjectIndex(cbbIssueTypes.getSelectionIndex());
             settingStore.saveStoredJiraIssueType(displayedJiraIssueType.getStoredObject());
-            
-            displayedJiraField.setDefaultObjectIndex(cbbFields.getSelectionIndex());
-            settingStore.saveStoredJiraField(displayedJiraField.getStoredObject());
 
             settingStore.saveStore();
             return true;

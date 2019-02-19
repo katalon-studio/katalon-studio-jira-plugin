@@ -1,25 +1,17 @@
 package com.katalon.plugin.jira.core;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
-import com.atlassian.jira.rest.client.api.JiraRestClient;
-import com.atlassian.jira.rest.client.api.JiraRestClientFactory;
 import com.atlassian.jira.rest.client.api.domain.Field;
-import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.User;
-import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.katalon.platform.api.report.TestCaseRecord;
@@ -27,7 +19,6 @@ import com.katalon.platform.api.report.TestSuiteRecord;
 import com.katalon.plugin.jira.core.constant.StringConstants;
 import com.katalon.plugin.jira.core.entity.ImprovedIssue;
 import com.katalon.plugin.jira.core.entity.JiraAttachment;
-import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraFilter;
 import com.katalon.plugin.jira.core.entity.JiraIssue;
 import com.katalon.plugin.jira.core.entity.JiraIssueLink;
@@ -51,23 +42,6 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
     public JiraIssue getJiraIssue(JiraCredential credential, String issueKey) throws JiraIntegrationException {
         return getJiraObject(credential, JiraAPIURL.getIssueAPIUrl(credential) + "/" + issueKey, JiraIssue.class);
     }
-    
-    public Issue getJiraRawIssue(JiraCredential credential, String issueKey) throws JiraIntegrationException {
-        JiraRestClientFactory clientFactory = new AsynchronousJiraRestClientFactory();
-        JiraRestClient restClient = clientFactory.createWithBasicHttpAuthentication(URI.create(credential.getServerUrl()),
-                credential.getUsername(), credential.getPassword());
-
-        try {
-            return restClient.getIssueClient().getIssue(issueKey).get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new JiraIntegrationException(e);
-        } finally {
-            try {
-                restClient.close();
-            } catch (IOException ignored) {
-            }
-        }
-    }
 
     public JiraIssueType[] getJiraIssuesTypes(JiraCredential credential) throws JiraIntegrationException {
         return getJiraArrayObjects(credential, JiraAPIURL.getIssueTypeAPIUrl(credential), JiraIssueType[].class);
@@ -75,21 +49,6 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
 
     public JiraProject[] getJiraProjects(JiraCredential credential) throws JiraIntegrationException {
         return getJiraArrayObjects(credential, JiraAPIURL.getProjectAPIUrl(credential), JiraProject[].class);
-    }
-
-    public JiraField[] getBDDCustomFields(JiraCredential credential) throws JiraIntegrationException {
-        JiraField[] jiraFields = getJiraArrayObjects(credential, JiraAPIURL.getFieldAPIUrl(credential),
-                JiraField[].class);
-        if (jiraFields == null) {
-            return new JiraField[0];
-        }
-        return Arrays.asList(jiraFields)
-                .stream()
-                .filter(field -> field.isCustom() && field.getSchema() != null
-                        && "com.atlassian.jira.plugin.system.customfieldtypes:textarea"
-                                .equals(field.getSchema().getCustom()))
-                .collect(Collectors.toList())
-                .toArray(new JiraField[0]);
     }
 
     public List<JiraAttachment> uploadAttachment(JiraCredential credential, JiraIssue issue, String logFilePath)

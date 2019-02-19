@@ -13,7 +13,6 @@ import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageC
 import com.katalon.plugin.jira.core.JiraCredential;
 import com.katalon.plugin.jira.core.JiraIntegrationAuthenticationHandler;
 import com.katalon.plugin.jira.core.JiraIntegrationException;
-import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraIssueType;
 import com.katalon.plugin.jira.core.entity.JiraProject;
 import com.katalon.plugin.jira.core.setting.StoredJiraObject;
@@ -54,10 +53,7 @@ public class JiraConnectionJob extends JiraProgressDialog {
                         monitor.subTask(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_FETCHING_ISSUE_TYPES);
                         getJiraIssueTypes();
                         monitor.worked(1);
-                        
-                        monitor.subTask(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_FETCHING_FIELDS);
-                        getJiraFields();
-                        monitor.worked(1);
+
                         result.setComplete(true);
                     } catch (JiraIntegrationException e) {
                         result.setError(e);
@@ -81,10 +77,6 @@ public class JiraConnectionJob extends JiraProgressDialog {
     private void getJiraIssueTypes() throws JiraIntegrationException {
         result.setJiraIssueTypes(handler.getJiraIssuesTypes(credential));
     }
-    
-    private void getJiraFields() throws JiraIntegrationException {
-        result.setJiraFields(handler.getBDDCustomFields(credential));
-    }
 
     public class JiraConnectionResult extends JiraProgressResult {
         private User user;
@@ -92,8 +84,6 @@ public class JiraConnectionJob extends JiraProgressDialog {
         private DisplayedComboboxObject<JiraProject> jiraProjects;
 
         private DisplayedComboboxObject<JiraIssueType> jiraIssueTypes;
-        
-        private DisplayedComboboxObject<JiraField> jiraFields;
 
         public JiraConnectionResult() {
             setComplete(false);
@@ -122,14 +112,6 @@ public class JiraConnectionJob extends JiraProgressDialog {
 
         public DisplayedComboboxObject<JiraProject> getJiraProjects() {
             return jiraProjects;
-        }
-
-        public DisplayedComboboxObject<JiraField> getJiraFields() {
-            return jiraFields;
-        }
-
-        public void setJiraFields(JiraField[] fields) {
-            this.jiraFields = new DisplayedComboboxObject<>(new StoredJiraObject<JiraField>(null, fields));
         }
     }
 }
