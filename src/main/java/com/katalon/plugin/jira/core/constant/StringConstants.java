@@ -12,6 +12,8 @@ public class StringConstants {
     public static final String PREF_SUBMIT_ATTACH_LOG = "submit.attachLog";
 
     public static final String PREF_SUBMIT_ATTACH_SCREENSHOT = "submit.attachScreenshot";
+    
+    public static final String PREF_SUBMIT_BDD_FIELD = "submit.bddField";
 
     public static final String PREF_SUBMIT_TEST_RESULT_AUTOMATICALLY = "submit.submitTestResultAutomatically";
 

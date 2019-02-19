@@ -20,7 +20,7 @@
 		<repository>
 			<id>atlassian-repo</id>
 			<name>atlassian public repo</name>
-			<url>https://maven.atlassian.com/content/repositories/atlassian-public/</url>
+			<url>https://packages.atlassian.com/maven-public/</url>
 		</repository>
 	</repositories>
 
@@ -40,33 +40,22 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore</artifactId>
-			<version>4.4.4</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.5.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpmime</artifactId>
-			<version>4.5.1</version>
-		</dependency>
-
-		<dependency>
 			<groupId>com.atlassian.jira</groupId>
-			<artifactId>jira-rest-java-client-api</artifactId>
-			<version>4.0.0</version>
+			<artifactId>jira-rest-java-client-core</artifactId>
+			<version>5.1.2-2bd0a62e</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>io.atlassian.fugue</groupId>
+			<artifactId>fugue</artifactId>
+			<version>4.7.2</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -125,7 +114,7 @@
 						</goals>
 						<configuration>
 							<excludes>com/katalon/platform/**,org/eclipse/**,org/osgi/**</excludes>
-							<includes>**/*.class</includes>
+							<includes>**/*.class,org/joda/time/tz/**</includes>
 							<outputDirectory>${project.build.outputDirectory}</outputDirectory>
 						</configuration>
 					</execution>
@@ -151,16 +140,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>dev</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-		</profile>
-		<profile>
-			<id>release</id>
-		</profile>
-	</profiles>
 </project>
