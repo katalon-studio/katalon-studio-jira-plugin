@@ -12,6 +12,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -27,18 +28,21 @@ import com.katalon.plugin.jira.composer.dialog.AbstractDialog;
 import com.katalon.plugin.jira.composer.preference.JiraPreferenceInitializer;
 import com.katalon.plugin.jira.core.JiraIntegrationAuthenticationHandler;
 import com.katalon.plugin.jira.core.JiraIntegrationException;
+import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraFilter;
+import com.katalon.plugin.jira.core.setting.StoredJiraObject;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
 
 import ch.qos.logback.classic.Logger;
-
 
 public class ImportJiraJQLDialog extends AbstractDialog implements JiraUIComponent {
     private Logger logger = (Logger) LoggerFactory.getLogger(ImportJiraJQLDialog.class);
 
     private Text text;
 
-    private JiraFilter filter;
+    private ImportJiraJQLResult result;
+
+    private Button chckLinkToBDDFeatureFile;
 
     public ImportJiraJQLDialog(Shell parentShell) {
         super(parentShell);
@@ -53,6 +57,16 @@ public class ImportJiraJQLDialog extends AbstractDialog implements JiraUICompone
         text.setText(JiraPreferenceInitializer.getLastEditedJQL(getCurrentProject()));
         text.setFocus();
         text.selectAll();
+        
+        try {
+            StoredJiraObject<JiraField> storedJiraField = getSettingStore().getStoredJiraField();
+            if (storedJiraField.getDefaultJiraObject() != null) {
+                chckLinkToBDDFeatureFile.setVisible(true);
+                chckLinkToBDDFeatureFile.setSelection(true);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -68,6 +82,11 @@ public class ImportJiraJQLDialog extends AbstractDialog implements JiraUICompone
 
         text = new Text(container, SWT.BORDER | SWT.MULTI | SWT.WRAP);
         text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+
+        chckLinkToBDDFeatureFile = new Button(container, SWT.CHECK);
+        chckLinkToBDDFeatureFile.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+        chckLinkToBDDFeatureFile.setText("Link to BDD Feature File");
+        chckLinkToBDDFeatureFile.setVisible(false);
 
         return container;
     }
@@ -85,11 +104,14 @@ public class ImportJiraJQLDialog extends AbstractDialog implements JiraUICompone
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
+                    result = new ImportJiraJQLResult();
+                    result.setLinkToBddFeatureFile(chckLinkToBDDFeatureFile.getSelection());
                     jql = text.getText();
                     ImportJiraJQLDialog.this.getButton(OK).setEnabled(false);
                 });
                 try {
-                    filter = new JiraIntegrationAuthenticationHandler().getJiraFilterByJql(getCredential(), jql);
+                    JiraFilter filter = new JiraIntegrationAuthenticationHandler().getJiraFilterByJql(getCredential(), jql);
+                    result.setJiraFilter(filter);
                     PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
                         updateJQLForNextUsage(jql);
                         ImportJiraJQLDialog.super.okPressed();
@@ -117,22 +139,44 @@ public class ImportJiraJQLDialog extends AbstractDialog implements JiraUICompone
         }
     }
 
-    public JiraFilter getFilter() {
-        return filter;
+    public ImportJiraJQLResult getResult() {
+        return result;
     }
 
     @Override
     protected Point getInitialSize() {
         return new Point(500, 250);
     }
-    
+
     @Override
     protected boolean hasDocumentation() {
         return true;
     }
-    
+
     @Override
     protected String getDocumentationUrl() {
         return ComposerJiraIntegrationMessageConstant.DIA_DOCUMENT_URL_IMPORT_TEST_CASE_FROM_JIRA;
+    }
+
+    public static class ImportJiraJQLResult {
+        private JiraFilter jiraFilter;
+
+        private boolean linkToBddFeatureFile;
+
+        public JiraFilter getJiraFilter() {
+            return jiraFilter;
+        }
+
+        public void setJiraFilter(JiraFilter jiraFilter) {
+            this.jiraFilter = jiraFilter;
+        }
+
+        public boolean isLinkToBddFeatureFile() {
+            return linkToBddFeatureFile;
+        }
+
+        public void setLinkToBddFeatureFile(boolean linkToBddFeatureFile) {
+            this.linkToBddFeatureFile = linkToBddFeatureFile;
+        }
     }
 }

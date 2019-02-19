@@ -35,6 +35,6 @@ public class StoredJiraObject<T extends AddressableEntity> {
         if (jiraObjects == null || defaultURI == null) {
             return null;
         }
-        return Arrays.stream(jiraObjects).filter(p -> p.getSelf().equals(defaultURI)).findFirst().orElse(null);
+        return Arrays.stream(jiraObjects).filter(p -> p.getSelf() != null && p.getSelf().equals(defaultURI)).findFirst().orElse(null);
     }
 }

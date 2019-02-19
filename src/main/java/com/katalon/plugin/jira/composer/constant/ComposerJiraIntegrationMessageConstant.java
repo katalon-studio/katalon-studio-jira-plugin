@@ -51,6 +51,8 @@ public class ComposerJiraIntegrationMessageConstant extends NLS {
     public static String JOB_SUB_TASK_FETCHING_PROJECTS;
 
     public static String JOB_SUB_TASK_FETCHING_ISSUE_TYPES;
+    
+    public static String JOB_SUB_TASK_FETCHING_FIELDS;
 
     public static String TOOLTIP_CLICK_TO_MANAGE_JIRA_ISSUES;
 
