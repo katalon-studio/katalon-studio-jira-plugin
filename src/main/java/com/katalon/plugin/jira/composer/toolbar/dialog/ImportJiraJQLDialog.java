@@ -28,9 +28,7 @@ import com.katalon.plugin.jira.composer.dialog.AbstractDialog;
 import com.katalon.plugin.jira.composer.preference.JiraPreferenceInitializer;
 import com.katalon.plugin.jira.core.JiraIntegrationAuthenticationHandler;
 import com.katalon.plugin.jira.core.JiraIntegrationException;
-import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraFilter;
-import com.katalon.plugin.jira.core.setting.StoredJiraObject;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
 
 import ch.qos.logback.classic.Logger;
@@ -57,16 +55,6 @@ public class ImportJiraJQLDialog extends AbstractDialog implements JiraUICompone
         text.setText(JiraPreferenceInitializer.getLastEditedJQL(getCurrentProject()));
         text.setFocus();
         text.selectAll();
-        
-        try {
-            StoredJiraObject<JiraField> storedJiraField = getSettingStore().getStoredJiraField();
-            if (storedJiraField.getDefaultJiraObject() != null) {
-                chckLinkToBDDFeatureFile.setVisible(true);
-                chckLinkToBDDFeatureFile.setSelection(true);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -86,7 +74,7 @@ public class ImportJiraJQLDialog extends AbstractDialog implements JiraUICompone
         chckLinkToBDDFeatureFile = new Button(container, SWT.CHECK);
         chckLinkToBDDFeatureFile.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
         chckLinkToBDDFeatureFile.setText("Link to BDD Feature File");
-        chckLinkToBDDFeatureFile.setVisible(false);
+        chckLinkToBDDFeatureFile.setSelection(true);
 
         return container;
     }

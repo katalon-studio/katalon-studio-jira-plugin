@@ -48,6 +48,32 @@ public class JiraIntegrationRequest {
 
     private Logger logger = LoggerFactory.getLogger(JiraIntegrationRequest.class);
 
+    public String getJiraResponse(JiraCredential credential, String url, boolean shouldAddAuthentication)
+            throws JiraIntegrationException {
+        if (StringUtils.isEmpty(credential.getServerUrl())) {
+            throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_WARN_CONFIGURE_JIRA_SETTINGS);
+        }
+        try (CloseableHttpClient client = HttpClientBuilder.create().setSSLContext(getTrustedSSLContext()).build()) {
+            HttpGet request = new HttpGet(url);
+
+            if (shouldAddAuthentication) {
+                addAuthenticationHeader(credential, request);
+            }
+            request.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
+
+            return getResultFromRequest(client, request);
+        } catch (IllegalArgumentException e) {
+            throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_INVALID_SERVER_URL);
+        } catch (GeneralSecurityException e) {
+            logger.error(e.getMessage());
+        } catch (JiraIntegrationException e) {
+            throw e;
+        } catch (IOException e) {
+            throw new JiraIntegrationException(e);
+        }
+        return null;
+    }
+
     public String getJiraResponse(JiraCredential credential, String url) throws JiraIntegrationException {
         if (StringUtils.isEmpty(credential.getServerUrl())) {
             throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_WARN_CONFIGURE_JIRA_SETTINGS);

@@ -10,7 +10,6 @@ import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_ATTACH_SCREENSHOT;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_JIRA_ISSUE_TYPE;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_JIRA_PROJECT;
-import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_BDD_FIELD;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_TEST_RESULT_AUTOMATICALLY;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_USE_TEST_CASE_NAME_AS_SUMMARY;
 
@@ -26,7 +25,6 @@ import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.preference.PluginPreference;
 import com.katalon.plugin.jira.core.JiraAPIURL;
 import com.katalon.plugin.jira.core.JiraCredential;
-import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraIssueType;
 import com.katalon.plugin.jira.core.entity.JiraProject;
 import com.katalon.plugin.jira.core.util.JsonUtil;
@@ -126,22 +124,6 @@ public class JiraIntegrationSettingStore {
 
     public void saveStoredJiraProject(StoredJiraObject<JiraProject> storedJiraProject) throws IOException {
         delegate.setString(PREF_SUBMIT_JIRA_PROJECT, JsonUtil.toJson(storedJiraProject, false));
-    }
-    
-    public StoredJiraObject<JiraField> getStoredJiraField() throws IOException {
-        StoredJiraObject<JiraField> instance = new StoredJiraObject<>(null, null);
-        String objectAsString = delegate.getString(PREF_SUBMIT_BDD_FIELD, StringUtils.EMPTY);
-        try {
-            Type collectionType = new TypeToken<StoredJiraObject<JiraField>>() {}.getType();
-            StoredJiraObject<JiraField> storedObject = JsonUtil.fromJson(objectAsString, collectionType);
-            return storedObject != null ? storedObject : instance;
-        } catch (IllegalArgumentException e) {
-            return instance;
-        }
-    }
-
-    public void saveStoredJiraField(StoredJiraObject<JiraField> storedJiraProject) throws IOException {
-        delegate.setString(PREF_SUBMIT_BDD_FIELD, JsonUtil.toJson(storedJiraProject, false));
     }
 
     public StoredJiraObject<JiraIssueType> getStoredJiraIssueType() throws IOException {

@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,8 +24,6 @@ import org.joda.time.tz.UTCProvider;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.JiraRestClientFactory;
 import com.atlassian.jira.rest.client.api.domain.Field;
-import com.atlassian.jira.rest.client.api.domain.Issue;
-import com.atlassian.jira.rest.client.api.domain.IssueField;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.katalon.platform.api.controller.FeatureFileController;
 import com.katalon.platform.api.controller.FolderController;
@@ -50,7 +47,6 @@ import com.katalon.plugin.jira.core.JiraIntegrationAuthenticationHandler;
 import com.katalon.plugin.jira.core.JiraIntegrationException;
 import com.katalon.plugin.jira.core.JiraObjectToEntityConverter;
 import com.katalon.plugin.jira.core.entity.ImprovedIssue;
-import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraFilter;
 import com.katalon.plugin.jira.core.entity.JiraIssue;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
@@ -85,141 +81,132 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
         if (folder == null || issues.isEmpty()) {
             return;
         }
-        try {
-            final TestCaseController testCaseController = PlatformUtil.getPlatformController(TestCaseController.class);
-            final ProjectEntity currentProject = getCurrentProject();
-            final JiraField bddField = getSettingStore().getStoredJiraField().getDefaultJiraObject();
+        final TestCaseController testCaseController = PlatformUtil.getPlatformController(TestCaseController.class);
+        final ProjectEntity currentProject = getCurrentProject();
 
-            Job job = new Job(ComposerJiraIntegrationMessageConstant.JOB_TASK_IMPORTING_ISSUES) {
+        Job job = new Job(ComposerJiraIntegrationMessageConstant.JOB_TASK_IMPORTING_ISSUES) {
 
-                @Override
-                protected IStatus run(IProgressMonitor monitor) {
-                    monitor.beginTask(StringUtils.EMPTY, issues.size());
-                    JiraRestClient restClient = null;
-                    try {
-                        monitor.setTaskName(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_FETCHING_KATALON_FIELD);
-                        Optional<Field> katalonCommentField = getKatalonCommentField(getCredential());
+            @Override
+            protected IStatus run(IProgressMonitor monitor) {
+                monitor.beginTask(StringUtils.EMPTY, issues.size());
+                JiraRestClient restClient = null;
+                try {
+                    monitor.setTaskName(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_FETCHING_KATALON_FIELD);
+                    Optional<Field> katalonCommentField = getKatalonCommentField(getCredential());
+                    monitor.worked(1);
+                    List<TestCaseEntity> testCases = new ArrayList<>();
+
+                    JiraRestClientFactory clientFactory = new AsynchronousJiraRestClientFactory();
+                    JiraCredential credential = getCredential();
+                    restClient = clientFactory.createWithBasicHttpAuthentication(
+                            URI.create(credential.getServerUrl()), credential.getUsername(),
+                            credential.getPassword());
+                    DateTimeZone.setProvider(new UTCProvider());
+
+                    for (JiraIssue issue : issues) {
+                        if (monitor.isCanceled()) {
+                            return Status.CANCEL_STATUS;
+                        }
+                        String newTestCaseName = testCaseController.getAvailableTestCaseName(currentProject, folder,
+                                issue.getKey());
+                        monitor.setTaskName(MessageFormat.format(
+                                ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_IMPORTING_ISSUE,
+                                newTestCaseName));
+                        String description = getDescriptionFromIssue(issue);
+                        String katalonCustomFieldValue = getComment(katalonCommentField, issue);
+                        TestCaseEntity testCase = testCaseController.newTestCase(currentProject, folder,
+                                new NewTestCaseIssueDescription(newTestCaseName, description, katalonCustomFieldValue));
+
+                        testCase = JiraObjectToEntityConverter.updateTestCase(issue, testCase);
+
+                        String testCaseScript = getScriptForComment(katalonCustomFieldValue);
+                        
+                        if (result.isLinkToBddFeatureFile()) {
+                            FeatureFileController featureController = PlatformUtil
+                                    .getPlatformController(FeatureFileController.class);
+                            FolderEntity featureFolder = PlatformUtil.getPlatformController(FolderController.class)
+                                    .getFolder(currentProject, "Include/features");
+                            String featureFileName = featureController.getAvailableFeatureFileName(currentProject,
+                                    featureFolder, testCase.getName() + ".feature");
+                            SystemFileEntity systemFile = featureController.newFeatureFile(currentProject,
+                                    featureFolder, featureFileName);
+                            FileUtils.write(systemFile.getFile(), katalonCustomFieldValue);
+
+                            testCaseScript = getScriptForFeatureFile(systemFile);
+                        }
+
+                        FileUtils.write(testCase.getScriptFile(), testCaseScript, true);
+                        testCases.add(testCase);
                         monitor.worked(1);
-                        List<TestCaseEntity> testCases = new ArrayList<>();
-
-                        JiraRestClientFactory clientFactory = new AsynchronousJiraRestClientFactory();
-                        JiraCredential credential = getCredential();
-                        restClient = clientFactory.createWithBasicHttpAuthentication(
-                                URI.create(credential.getServerUrl()), credential.getUsername(),
-                                credential.getPassword());
-                        DateTimeZone.setProvider(new UTCProvider());
-
-                        for (JiraIssue issue : issues) {
-                            if (monitor.isCanceled()) {
-                                return Status.CANCEL_STATUS;
-                            }
-                            String newTestCaseName = testCaseController.getAvailableTestCaseName(currentProject, folder,
-                                    issue.getKey());
-                            monitor.setTaskName(MessageFormat.format(
-                                    ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_IMPORTING_ISSUE,
-                                    newTestCaseName));
-                            String description = getDescriptionFromIssue(issue);
-                            String comment = getComment(katalonCommentField, issue);
-                            TestCaseEntity testCase = testCaseController.newTestCase(currentProject, folder,
-                                    new NewTestCaseIssueDescription(newTestCaseName, description, comment));
-
-                            testCase = JiraObjectToEntityConverter.updateTestCase(issue, testCase);
-
-                            String scriptForComment = getScriptForComment(comment);
-                            if (result.isLinkToBddFeatureFile() && bddField != null) {
-                                Issue rawIssue = restClient.getIssueClient().getIssue(issue.getKey()).get();
-                                IssueField rawBddField = rawIssue.getField(bddField.getId());
-                                String bddContent = rawBddField != null ? String.valueOf(rawBddField.getValue()) : "";
-
-                                FeatureFileController featureController = PlatformUtil
-                                        .getPlatformController(FeatureFileController.class);
-                                FolderEntity featureFolder = PlatformUtil.getPlatformController(FolderController.class)
-                                        .getFolder(currentProject, "Include/features");
-                                String featureFileName = featureController.getAvailableFeatureFileName(currentProject,
-                                        featureFolder, testCase.getName() + ".feature");
-                                SystemFileEntity systemFile = featureController.newFeatureFile(currentProject,
-                                        featureFolder, featureFileName);
-                                FileUtils.write(systemFile.getFile(), bddContent);
-
-                                scriptForComment += "\n" + getScriptForFeatureFile(systemFile);
-                            }
-
-                            FileUtils.write(testCase.getScriptFile(), scriptForComment, true);
-                            testCases.add(testCase);
-                            monitor.worked(1);
-                        }
-
-                        TestExplorerActionService explorerActionService = PlatformUtil
-                                .getUIService(TestExplorerActionService.class);
-                        explorerActionService.refreshFolder(currentProject, folder);
-                        explorerActionService.selectTestCases(currentProject, testCases);
-                        return Status.OK_STATUS;
-                    } catch (PlatformException | JiraIntegrationException | IOException | InterruptedException
-                            | ExecutionException e) {
-                        PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
-                            MessageDialog.openError(null, StringConstants.ERROR, e.getMessage());
-                        });
-                        return Status.CANCEL_STATUS;
-                    } finally {
-                        if (restClient != null) {
-                            try {
-                                restClient.close();
-                            } catch (IOException ignored) {}
-                        }
-                        monitor.done();
                     }
-                }
 
-                private Optional<Field> getKatalonCommentField(JiraCredential jiraCredential) throws IOException {
-                    try {
-                        return new JiraIntegrationAuthenticationHandler().getKatalonCustomField(jiraCredential);
-                    } catch (JiraIntegrationException e) {
-                        return Optional.empty();
-                    }
-                }
-
-                private String getComment(Optional<Field> katalonField, JiraIssue issue) {
-                    if (!katalonField.isPresent()) {
-                        return StringUtils.EMPTY;
-                    }
-                    ImprovedIssue fields = issue.getFields();
-                    if (fields == null) {
-                        return StringUtils.EMPTY;
-                    }
-                    Map<String, Object> customFields = fields.getCustomFields();
-                    String customFieldId = katalonField.get().getId();
-                    if (!customFields.containsKey(customFieldId)) {
-                        return StringUtils.EMPTY;
-                    }
-                    Object jsonComment = customFields.get(customFieldId);
-                    return jsonComment != null ? jsonComment.toString() : "";
-                }
-
-                private String getScriptForFeatureFile(SystemFileEntity systemFile) {
-                    return String.format("CucumberKW.runFeatureFile('%s')\n", systemFile.getId());
-                }
-
-                private String getScriptForComment(String comment) {
-                    StringBuilder commentBuilder = new StringBuilder();
-                    Arrays.asList(StringUtils.split(comment, "\r\n")).forEach(line -> {
-                        commentBuilder
-                                .append(String.format("WebUI.comment('%s')\n", StringEscapeUtils.escapeJava(line)));
+                    TestExplorerActionService explorerActionService = PlatformUtil
+                            .getUIService(TestExplorerActionService.class);
+                    explorerActionService.refreshFolder(currentProject, folder);
+                    explorerActionService.selectTestCases(currentProject, testCases);
+                    return Status.OK_STATUS;
+                } catch (PlatformException | JiraIntegrationException | IOException e) {
+                    PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
+                        MessageDialog.openError(null, StringConstants.ERROR, e.getMessage());
                     });
-                    return commentBuilder.toString();
+                    return Status.CANCEL_STATUS;
+                } finally {
+                    if (restClient != null) {
+                        try {
+                            restClient.close();
+                        } catch (IOException ignored) {}
+                    }
+                    monitor.done();
                 }
+            }
 
-                private String getDescriptionFromIssue(JiraIssue issue) {
-                    return String.format("%s: %s\n%s: %s", StringConstants.SUMMARY,
-                            StringUtils.defaultString(issue.getFields().getSummary()), StringConstants.DESCRIPTION,
-                            StringUtils.defaultString(issue.getFields().getDescription()));
+            private Optional<Field> getKatalonCommentField(JiraCredential jiraCredential) throws IOException {
+                try {
+                    return new JiraIntegrationAuthenticationHandler().getKatalonCustomField(jiraCredential);
+                } catch (JiraIntegrationException e) {
+                    return Optional.empty();
                 }
+            }
 
-            };
-            job.setUser(true);
-            job.schedule();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+            private String getComment(Optional<Field> katalonField, JiraIssue issue) {
+                if (!katalonField.isPresent()) {
+                    return StringUtils.EMPTY;
+                }
+                ImprovedIssue fields = issue.getFields();
+                if (fields == null) {
+                    return StringUtils.EMPTY;
+                }
+                Map<String, Object> customFields = fields.getCustomFields();
+                String customFieldId = katalonField.get().getId();
+                if (!customFields.containsKey(customFieldId)) {
+                    return StringUtils.EMPTY;
+                }
+                Object jsonComment = customFields.get(customFieldId);
+                return jsonComment != null ? jsonComment.toString() : "";
+            }
+
+            private String getScriptForFeatureFile(SystemFileEntity systemFile) {
+                return String.format("CucumberKW.runFeatureFile('%s')\n", systemFile.getId());
+            }
+
+            private String getScriptForComment(String comment) {
+                StringBuilder commentBuilder = new StringBuilder();
+                Arrays.asList(StringUtils.split(comment, "\r\n")).forEach(line -> {
+                    commentBuilder
+                            .append(String.format("WebUI.comment('%s')\n", StringEscapeUtils.escapeJava(line)));
+                });
+                return commentBuilder.toString();
+            }
+
+            private String getDescriptionFromIssue(JiraIssue issue) {
+                return String.format("%s: %s\n%s: %s", StringConstants.SUMMARY,
+                        StringUtils.defaultString(issue.getFields().getSummary()), StringConstants.DESCRIPTION,
+                        StringUtils.defaultString(issue.getFields().getDescription()));
+            }
+
+        };
+        job.setUser(true);
+        job.schedule();
     }
 
     private static class NewTestCaseIssueDescription implements TestCaseController.NewDescription {
