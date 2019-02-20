@@ -120,12 +120,20 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
                             trigger();
                             return;
                         }
+
+                        if (!dashBoardSet && location.equals(htmlLinkProvider.getDashboardHTMLLink())) {
+                            browser.setUrl(htmlLinkProvider.getHTMLLink());
+                            dashBoardSet = true;
+                            return;
+                        }
+
                         if (!dashBoardSet && !event.location.equals(htmlLinkProvider.getDashboardHTMLLink())) {
                             browser.setUrl(htmlLinkProvider.getDashboardHTMLLink());
                             browser.setUrl(htmlLinkProvider.getHTMLLink());
                             dashBoardSet = true;
                             return;
                         }
+
                         return;
                     }
                     getNewIssueKey(location);
