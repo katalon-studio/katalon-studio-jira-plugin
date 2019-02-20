@@ -93,6 +93,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
             @Override
             public void changing(LocationEvent event) {
                 txtBrowserUrl.setText(event.location);
+                System.out.println("Browser is changing location: " + event.location);
                 try {
                     if (!loggedIn && isSmartLoginPage(event.location)) {
                         loggedIn = true;
@@ -106,6 +107,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
             public void changed(LocationEvent event) {
                 try {
                     String location = browser.getUrl();
+                    System.out.println("Browser changed location: " + location);
                     if (!ready) {
                         if (!loggedIn && isLoginPage()) {
                             loggedIn = true;
