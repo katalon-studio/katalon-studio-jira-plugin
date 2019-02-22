@@ -36,7 +36,7 @@ public class JiraPluginMenuItemDescription implements ToolItemWithMenuDescriptio
     public String iconUrl() {
         return "platform:/plugin/" + StringConstants.JIRA_BUNDLE_ID + "/icons/jira_active_32x24.png";
     }
-    
+
     @Override
     public void defaultEventHandler() {
         if (menu != null && !menu.isDisposed()) {
@@ -73,7 +73,9 @@ public class JiraPluginMenuItemDescription implements ToolItemWithMenuDescriptio
             public void menuShown(MenuEvent e) {
 
                 try {
-                    importTestCaseMenuItem.setEnabled(getSettingStore().isIntegrationEnabled());
+                    importTestCaseMenuItem.setEnabled(
+                            PlatformUtil.getCurrentProject() != null && getSettingStore().isIntegrationEnabled());
+                    settingsTestCaseMenuItem.setEnabled(PlatformUtil.getCurrentProject() != null);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
