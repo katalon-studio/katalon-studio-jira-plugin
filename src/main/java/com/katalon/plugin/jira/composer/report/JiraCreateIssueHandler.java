@@ -56,8 +56,29 @@ public class JiraCreateIssueHandler implements JiraUIComponent {
 
     public JiraIssueProgressResult openNewIssueDialog(int numSteps) {
         try {
-            return openNewIssueBrowserDialog(new JiraIssueBrowserDialog(shell, logRecord,
-                    new NewIssueHTMLLinkProvider(testSuiteRecord, logRecord, numSteps, getSettingStore())));
+            NewIssueHTMLLinkProvider htmlLinkProvider = new NewIssueHTMLLinkProvider(testSuiteRecord, logRecord,
+                    numSteps, getSettingStore());
+            return openNewIssueBrowserDialog(new JiraIssueBrowserDialog(shell, logRecord, htmlLinkProvider) {
+                @Override
+                protected void trigger() {
+                    StringBuilder updateFieldsJS = new StringBuilder();
+                    try {
+                        if (getSettingStore().isUseTestCaseNameAsSummaryEnabled()) {
+                            updateFieldsJS.append(updateField(JiraIssue.FIELD_SUMMARY,
+                                    htmlLinkProvider.getIssueMetaData().getSummary()));
+                        }
+
+                        updateFieldsJS.append(updateField(JiraIssue.FIELD_DESCRIPTION,
+                                htmlLinkProvider.getIssueMetaData().getDescription()));
+
+                        updateFieldsJS.append(updateField(JiraIssue.FIELD_ENVIRONMENT,
+                                htmlLinkProvider.getIssueMetaData().getEnvironment()));
+                        browser.execute(waitAndExec(JiraIssue.FIELD_DESCRIPTION, updateFieldsJS.toString()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         } catch (URISyntaxException | IOException ex) {
             logger.error("", ex);
             return null;
@@ -120,8 +141,29 @@ public class JiraCreateIssueHandler implements JiraUIComponent {
 
     public JiraIssueProgressResult openEditIssueDialog(JiraIssue jiraIssue) {
         try {
-            JiraIssueBrowserDialog browserDialog = new JiraIssueBrowserDialog(shell, logRecord,
-                    new EditIssueHTMLLinkProvider(testSuiteRecord, logRecord, getSettingStore(), jiraIssue));
+            EditIssueHTMLLinkProvider htmlLinkProvider = new EditIssueHTMLLinkProvider(testSuiteRecord, logRecord,
+                    getSettingStore(), jiraIssue);
+            JiraIssueBrowserDialog browserDialog = new JiraIssueBrowserDialog(shell, logRecord, htmlLinkProvider) {
+                @Override
+                protected void trigger() {
+                    StringBuilder updateFieldsJS = new StringBuilder();
+                    try {
+                        if (getSettingStore().isUseTestCaseNameAsSummaryEnabled()) {
+                            updateFieldsJS.append(updateField(JiraIssue.FIELD_SUMMARY,
+                                    htmlLinkProvider.getIssueMetaData().getSummary()));
+                        }
+
+                        updateFieldsJS.append(updateField(JiraIssue.FIELD_DESCRIPTION,
+                                htmlLinkProvider.getIssueMetaData().getDescription()));
+                        
+                        updateFieldsJS.append(updateField(JiraIssue.FIELD_ENVIRONMENT,
+                                htmlLinkProvider.getIssueMetaData().getEnvironment()));
+                        browser.execute(waitAndExec(JiraIssue.FIELD_DESCRIPTION, updateFieldsJS.toString()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
 
             if (browserDialog.open() != Dialog.OK) {
                 return null;

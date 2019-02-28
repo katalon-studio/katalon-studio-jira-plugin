@@ -1,7 +1,5 @@
 package com.katalon.plugin.jira;
 
-import java.io.IOException;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
@@ -76,7 +74,7 @@ public class JiraPluginMenuItemDescription implements ToolItemWithMenuDescriptio
                     importTestCaseMenuItem.setEnabled(
                             PlatformUtil.getCurrentProject() != null && getSettingStore().isIntegrationEnabled());
                     settingsTestCaseMenuItem.setEnabled(PlatformUtil.getCurrentProject() != null);
-                } catch (IOException ex) {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }

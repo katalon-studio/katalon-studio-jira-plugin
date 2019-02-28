@@ -39,8 +39,8 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
 
     private IssueHTMLLinkProvider htmlLinkProvider;
 
-    public JiraIssueBrowserDialog(Shell parentShell, TestCaseRecord logRecord,
-            IssueHTMLLinkProvider htmlLinkProvider) throws URISyntaxException, IOException {
+    public JiraIssueBrowserDialog(Shell parentShell, TestCaseRecord logRecord, IssueHTMLLinkProvider htmlLinkProvider)
+            throws URISyntaxException, IOException {
         super(parentShell);
         this.htmlLinkProvider = htmlLinkProvider;
     }
@@ -93,7 +93,6 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
             @Override
             public void changing(LocationEvent event) {
                 txtBrowserUrl.setText(event.location);
-                System.out.println("Browser is changing location: " + event.location);
                 try {
                     if (!loggedIn && isSmartLoginPage(event.location)) {
                         loggedIn = true;
@@ -107,7 +106,6 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
             public void changed(LocationEvent event) {
                 try {
                     String location = browser.getUrl();
-                    System.out.println("Browser changed location: " + location);
                     if (!ready) {
                         if (!loggedIn && isLoginPage()) {
                             loggedIn = true;
@@ -118,12 +116,6 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
                         if (location.startsWith(htmlLinkProvider.getIssueUrlPrefix())) {
                             ready = true;
                             trigger();
-                            return;
-                        }
-
-                        if (!dashBoardSet && location.equals(htmlLinkProvider.getDashboardHTMLLink())) {
-                            browser.setUrl(htmlLinkProvider.getHTMLLink());
-                            dashBoardSet = true;
                             return;
                         }
 
@@ -169,7 +161,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
         String url = browser.getUrl();
         return htmlLinkProvider.getLoginHTMLLink().startsWith(url);
     }
-    
+
     private boolean isSmartLoginPage(String url) {
         return url.contains("smartlock.google.com");
     }
@@ -178,13 +170,14 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
         try {
             browser.execute("document.getElementById('username').value = '"
                     + StringEscapeUtils.escapeEcmaScript(getCredential().getUsername()) + "';");
-            
+
             browser.execute("document.getElementById('login-submit').click();");
-            
+
             browser.execute("document.getElementById('password').value = '"
                     + StringEscapeUtils.escapeEcmaScript(getCredential().getPassword()) + "';");
 
-            browser.execute("setTimeout(function waitLoginSubmit(){ document.getElementById('login-submit').click();}, 3000);");
+            browser.execute(
+                    "setTimeout(function waitLoginSubmit(){ document.getElementById('login-submit').click();}, 3000);");
         } catch (IOException | JiraIntegrationException e) {
             logger.error("Unable to login to JIRA cloud", e);
         }
@@ -208,6 +201,11 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
     protected String waitAndExec(String element, String js) {
         return "function waitUntilExist() {" + "if (document.getElementById('" + element + "') === null) {"
                 + "setTimeout(waitUntilExist, 1000);" + "} else {" + js + "}" + "};" + "waitUntilExist();";
+    }
+
+    protected String updateField(String id, String value) {
+        return "document.getElementById(\"" + id + "\").value = \"" + StringEscapeUtils.escapeEcmaScript(value)
+                + "\";\n";
     }
 
     protected void trigger() {
