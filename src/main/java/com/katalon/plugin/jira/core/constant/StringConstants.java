@@ -34,6 +34,8 @@ public class StringConstants {
     public static final String INTEGRATED_VALUE_NAME = "integratedValue";
 
     public static final String HREF_DASHBOARD = "/secure/Dashboard.jspa";
+    
+    public static final String HREF_SECURE = "/secure/";
 
     public static final String HREF_LOGIN = "/login.jsp";
 

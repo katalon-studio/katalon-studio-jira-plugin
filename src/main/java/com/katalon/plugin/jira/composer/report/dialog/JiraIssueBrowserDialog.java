@@ -10,6 +10,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -30,6 +32,8 @@ import ch.qos.logback.classic.Logger;
 
 public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
     private Logger logger = (Logger) LoggerFactory.getLogger(JiraIssueBrowserDialog.class);
+
+    private boolean ready;
 
     private Text txtBrowserUrl;
 
@@ -83,54 +87,75 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
     }
 
     private void registerControlModifyListeners() {
-        browser.addLocationListener(new LocationListener() {
-            private boolean ready;
+        browser.addProgressListener(new ProgressListener() {
 
-            private boolean dashBoardSet;
+            @Override
+            public void completed(ProgressEvent event) {
+                try {
+                    String url = browser.getUrl();
+                    if (isJiraCloud(url)) {
+                        if (url.startsWith(htmlLinkProvider.getSecureDashboardHTMLLink())
+                                && !url.equals(htmlLinkProvider.getDashboardHTMLLink())
+                                && !url.startsWith(htmlLinkProvider.getIssueUrlPrefix())) {
+                            browser.setUrl(htmlLinkProvider.getHTMLLink());
+                        }
+                    } else {
+                        if (!isLoginPage() 
+                                && !url.startsWith(htmlLinkProvider.getHTMLLink())) {
+                            browser.setUrl(htmlLinkProvider.getHTMLLink());
+                        }
+                    }
+
+                    if (url.equals(htmlLinkProvider.getDashboardHTMLLink())) {
+                        browser.setUrl(htmlLinkProvider.getHTMLLink());
+                        return;
+                    }
+
+                    if (url.startsWith(htmlLinkProvider.getIssueUrlPrefix())) {
+                        ready = true;
+                        trigger();
+                        return;
+                    }
+
+                    String createdIssueURLPrefix = getHTMLIssueURLPrefix();
+                    if (ready && url.startsWith(createdIssueURLPrefix)) {
+                        browser.removeProgressListener(this);
+                        issueKey = url.substring(createdIssueURLPrefix.length() + 1);
+                        close();
+                    }
+                } catch (IOException | URISyntaxException | GeneralSecurityException e) {
+                }
+            }
+
+            @Override
+            public void changed(ProgressEvent event) {
+            }
+        });
+        browser.addLocationListener(new LocationListener() {
 
             private boolean loggedIn;
 
             @Override
             public void changing(LocationEvent event) {
                 txtBrowserUrl.setText(event.location);
-                try {
-                    if (!loggedIn && isSmartLoginPage(event.location)) {
-                        loggedIn = true;
-                        login();
-                        return;
-                    }
-                } catch (IOException | URISyntaxException | GeneralSecurityException ignore) {}
             }
 
             @Override
             public void changed(LocationEvent event) {
                 try {
                     String location = browser.getUrl();
+                    txtBrowserUrl.setText(location);
                     if (!ready) {
-                        if (!loggedIn && isLoginPage()) {
+                        if (!loggedIn && (isLoginPage() || isSmartLoginPage(event.location))) {
                             loggedIn = true;
                             login();
                             return;
                         }
 
-                        if (location.startsWith(htmlLinkProvider.getIssueUrlPrefix())) {
-                            ready = true;
-                            trigger();
-                            return;
-                        }
-
-                        if (!dashBoardSet && !event.location.equals(htmlLinkProvider.getDashboardHTMLLink())) {
-                            browser.setUrl(htmlLinkProvider.getDashboardHTMLLink());
-                            browser.setUrl(htmlLinkProvider.getHTMLLink());
-                            dashBoardSet = true;
-                            return;
-                        }
-
                         return;
                     }
-                    getNewIssueKey(location);
                 } catch (IOException | URISyntaxException | GeneralSecurityException e) {
-                    logger.error("Unable to navigate to dashboard", e);
+                    logger.error("Unable to connect to JIRA Server", e);
                 }
             }
 
@@ -139,15 +164,6 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
                     loginForServer();
                 } else {
                     loginForCloud();
-                }
-            }
-
-            private void getNewIssueKey(String location) throws IOException, GeneralSecurityException {
-                String createdIssueURLPrefix = getHTMLIssueURLPrefix();
-                if (location.startsWith(createdIssueURLPrefix)) {
-                    browser.removeLocationListener(this);
-                    issueKey = location.substring(createdIssueURLPrefix.length() + 1);
-                    close();
                 }
             }
         });
@@ -159,27 +175,32 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
 
     private boolean isLoginPage() throws IOException, URISyntaxException, GeneralSecurityException {
         String url = browser.getUrl();
-        return htmlLinkProvider.getLoginHTMLLink().startsWith(url);
+        return url.startsWith(htmlLinkProvider.getLoginHTMLLink());
     }
 
     private boolean isSmartLoginPage(String url) {
-        return url.contains("smartlock.google.com");
+        return url.contains("smartlock.google.com") || url.contains("https://id.atlassian.com/login");
+    }
+    
+    private boolean isJiraCloud(String url) {
+        return url.contains("atlassian.net");
     }
 
     protected void loginForCloud() {
         try {
-            browser.execute("document.getElementById('username').value = '"
+            browser.execute("document.getElementById('username').innerText = '"
                     + StringEscapeUtils.escapeEcmaScript(getCredential().getUsername()) + "';");
 
-            browser.execute("document.getElementById('login-submit').click();");
+            browser.execute("setTimeout(function waitLoginSubmitUsername(){ "
+                    + "document.getElementById('login-submit').click();" + "}, 500);");
 
-            browser.execute("document.getElementById('password').value = '"
-                    + StringEscapeUtils.escapeEcmaScript(getCredential().getPassword()) + "';");
+            browser.execute("setTimeout(function waitPassword(){ " + "document.getElementById('password').innerText = '"
+                    + StringEscapeUtils.escapeEcmaScript(getCredential().getPassword()) + "';"
+                    + "setTimeout(function waitLoginSubmitPassword(){ document.getElementById('login-submit').click();}, 500);"
+                    + "}, 2500);");
 
-            browser.execute(
-                    "setTimeout(function waitLoginSubmit(){ document.getElementById('login-submit').click();}, 3000);");
         } catch (IOException | JiraIntegrationException e) {
-            logger.error("Unable to login to JIRA cloud", e);
+            logger.error("Unable to login to JIRA Cloud Server", e);
         }
     }
 
@@ -194,7 +215,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
                     .append("document.getElementById(\"login-form-submit\").click();\n");
             browser.execute(waitAndExec("login-form-submit", js.toString()));
         } catch (IOException | JiraIntegrationException e) {
-            logger.error("Unable to login to JIRA server", e);
+            logger.error("Unable to login to JIRA Server", e);
         }
     }
 

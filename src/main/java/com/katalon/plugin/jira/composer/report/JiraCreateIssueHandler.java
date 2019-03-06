@@ -14,7 +14,9 @@ import com.katalon.plugin.jira.composer.JiraUIComponent;
 import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
 import com.katalon.plugin.jira.composer.constant.StringConstants;
 import com.katalon.plugin.jira.composer.report.dialog.CreateAsSubTaskBrowserDialog;
+import com.katalon.plugin.jira.composer.report.dialog.JiraEditIssueDialog;
 import com.katalon.plugin.jira.composer.report.dialog.JiraIssueBrowserDialog;
+import com.katalon.plugin.jira.composer.report.dialog.JiraNewIssueDialog;
 import com.katalon.plugin.jira.composer.report.dialog.LinkJiraIssueDialog;
 import com.katalon.plugin.jira.composer.report.dialog.progress.JiraIssueProgressResult;
 import com.katalon.plugin.jira.composer.report.dialog.progress.LinkJiraIssueProgressDialog;
@@ -58,27 +60,7 @@ public class JiraCreateIssueHandler implements JiraUIComponent {
         try {
             NewIssueHTMLLinkProvider htmlLinkProvider = new NewIssueHTMLLinkProvider(testSuiteRecord, logRecord,
                     numSteps, getSettingStore());
-            return openNewIssueBrowserDialog(new JiraIssueBrowserDialog(shell, logRecord, htmlLinkProvider) {
-                @Override
-                protected void trigger() {
-                    StringBuilder updateFieldsJS = new StringBuilder();
-                    try {
-                        if (getSettingStore().isUseTestCaseNameAsSummaryEnabled()) {
-                            updateFieldsJS.append(updateField(JiraIssue.FIELD_SUMMARY,
-                                    htmlLinkProvider.getIssueMetaData().getSummary()));
-                        }
-
-                        updateFieldsJS.append(updateField(JiraIssue.FIELD_DESCRIPTION,
-                                htmlLinkProvider.getIssueMetaData().getDescription()));
-
-                        updateFieldsJS.append(updateField(JiraIssue.FIELD_ENVIRONMENT,
-                                htmlLinkProvider.getIssueMetaData().getEnvironment()));
-                        browser.execute(waitAndExec(JiraIssue.FIELD_DESCRIPTION, updateFieldsJS.toString()));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+            return openNewIssueBrowserDialog(new JiraNewIssueDialog(shell, logRecord, htmlLinkProvider));
         } catch (URISyntaxException | IOException ex) {
             logger.error("", ex);
             return null;
@@ -143,27 +125,7 @@ public class JiraCreateIssueHandler implements JiraUIComponent {
         try {
             EditIssueHTMLLinkProvider htmlLinkProvider = new EditIssueHTMLLinkProvider(testSuiteRecord, logRecord,
                     getSettingStore(), jiraIssue);
-            JiraIssueBrowserDialog browserDialog = new JiraIssueBrowserDialog(shell, logRecord, htmlLinkProvider) {
-                @Override
-                protected void trigger() {
-                    StringBuilder updateFieldsJS = new StringBuilder();
-                    try {
-                        if (getSettingStore().isUseTestCaseNameAsSummaryEnabled()) {
-                            updateFieldsJS.append(updateField(JiraIssue.FIELD_SUMMARY,
-                                    htmlLinkProvider.getIssueMetaData().getSummary()));
-                        }
-
-                        updateFieldsJS.append(updateField(JiraIssue.FIELD_DESCRIPTION,
-                                htmlLinkProvider.getIssueMetaData().getDescription()));
-                        
-                        updateFieldsJS.append(updateField(JiraIssue.FIELD_ENVIRONMENT,
-                                htmlLinkProvider.getIssueMetaData().getEnvironment()));
-                        browser.execute(waitAndExec(JiraIssue.FIELD_DESCRIPTION, updateFieldsJS.toString()));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
+            JiraEditIssueDialog browserDialog = new JiraEditIssueDialog(shell, logRecord, htmlLinkProvider);
 
             if (browserDialog.open() != Dialog.OK) {
                 return null;
