@@ -80,7 +80,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
 
     private void setInput() {
         try {
-            browser.setUrl(htmlLinkProvider.getLoginHTMLLink());
+            browser.setUrl(htmlLinkProvider.getDashboardHTMLLink());
         } catch (IOException | URISyntaxException | GeneralSecurityException e) {
             logger.error("Unable to set URL to browser", e);
         }
@@ -93,6 +93,9 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
             public void completed(ProgressEvent event) {
                 try {
                     String url = browser.getUrl();
+                    if (!url.startsWith(getCredential().getServerUrl())) {
+                        return;
+                    }
                     if (isJiraCloud(url)) {
                         if (url.startsWith(htmlLinkProvider.getSecureDashboardHTMLLink())
                                 && !url.equals(htmlLinkProvider.getDashboardHTMLLink())
@@ -107,13 +110,19 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
                     }
 
                     if (url.equals(htmlLinkProvider.getDashboardHTMLLink())) {
-                        browser.setUrl(htmlLinkProvider.getHTMLLink());
+                        if (!isDashboardRequireLogin()) {
+                            browser.setUrl(htmlLinkProvider.getHTMLLink());
+                        }
                         return;
                     }
 
                     if (url.startsWith(htmlLinkProvider.getIssueUrlPrefix())) {
-                        ready = true;
-                        trigger();
+                        if (isIssueURLAuthorized()) {
+                            ready = true;
+                            trigger();
+                        } else {
+                            browser.setUrl(htmlLinkProvider.getLoginHTMLLink());
+                        }
                         return;
                     }
 
@@ -123,7 +132,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
                         issueKey = url.substring(createdIssueURLPrefix.length() + 1);
                         close();
                     }
-                } catch (IOException | URISyntaxException | GeneralSecurityException e) {
+                } catch (IOException | URISyntaxException | GeneralSecurityException | JiraIntegrationException e) {
                 }
             }
 
@@ -133,8 +142,6 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
         });
         browser.addLocationListener(new LocationListener() {
 
-            private boolean loggedIn;
-
             @Override
             public void changing(LocationEvent event) {
                 txtBrowserUrl.setText(event.location);
@@ -142,31 +149,20 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
 
             @Override
             public void changed(LocationEvent event) {
-                try {
-                    String location = browser.getUrl();
-                    txtBrowserUrl.setText(location);
-                    if (!ready) {
-                        if (!loggedIn && (isLoginPage() || isSmartLoginPage(event.location))) {
-                            loggedIn = true;
-                            login();
-                            return;
-                        }
-
-                        return;
-                    }
-                } catch (IOException | URISyntaxException | GeneralSecurityException e) {
-                    logger.error("Unable to connect to JIRA Server", e);
-                }
-            }
-
-            private void login() throws IOException, URISyntaxException, GeneralSecurityException {
-                if (isLoginDashboard()) {
-                    loginForServer();
-                } else {
-                    loginForCloud();
-                }
+                String location = browser.getUrl();
+                txtBrowserUrl.setText(location);
             }
         });
+    }
+    
+    private boolean isIssueURLAuthorized() {
+        Object object = browser.evaluate("return document.getElementById('summary') !== null;");
+        return object instanceof Boolean && ((Boolean) object).booleanValue();
+    }
+
+    private boolean isDashboardRequireLogin() {
+        Object object = browser.evaluate("return document.getElementById('username') !== null;");
+        return object instanceof Boolean && ((Boolean) object).booleanValue();
     }
 
     private boolean isLoginDashboard() throws IOException, URISyntaxException, GeneralSecurityException {
@@ -187,36 +183,36 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
     }
 
     protected void loginForCloud() {
-        try {
-            browser.execute("document.getElementById('username').innerText = '"
-                    + StringEscapeUtils.escapeEcmaScript(getCredential().getUsername()) + "';");
-
-            browser.execute("setTimeout(function waitLoginSubmitUsername(){ "
-                    + "document.getElementById('login-submit').click();" + "}, 500);");
-
-            browser.execute("setTimeout(function waitPassword(){ " + "document.getElementById('password').innerText = '"
-                    + StringEscapeUtils.escapeEcmaScript(getCredential().getPassword()) + "';"
-                    + "setTimeout(function waitLoginSubmitPassword(){ document.getElementById('login-submit').click();}, 500);"
-                    + "}, 2500);");
-
-        } catch (IOException | JiraIntegrationException e) {
-            logger.error("Unable to login to JIRA Cloud Server", e);
-        }
+//        try {
+//            browser.execute("document.getElementById('username').innerText = '"
+//                    + StringEscapeUtils.escapeEcmaScript(getCredential().getUsername()) + "';");
+//
+//            browser.execute("setTimeout(function waitLoginSubmitUsername(){ "
+//                    + "document.getElementById('login-submit').click();" + "}, 500);");
+//
+//            browser.execute("setTimeout(function waitPassword(){ " + "document.getElementById('password').innerText = '"
+//                    + StringEscapeUtils.escapeEcmaScript(getCredential().getPassword()) + "';"
+//                    + "setTimeout(function waitLoginSubmitPassword(){ document.getElementById('login-submit').click();}, 500);"
+//                    + "}, 2500);");
+//
+//        } catch (IOException | JiraIntegrationException e) {
+//            logger.error("Unable to login to JIRA Cloud Server", e);
+//        }
     }
 
     protected void loginForServer() {
-        try {
-            StringBuilder js = new StringBuilder();
-            js.append("document.getElementById(\"login-form-username\").value = \""
-                    + StringEscapeUtils.escapeEcmaScript(getCredential().getUsername()) + "\";\n")
-                    .append("document.getElementById(\"login-form-password\").value = \""
-                            + StringEscapeUtils.escapeEcmaScript(getCredential().getPassword()) + "\";\n")
-                    .append("document.getElementById(\"login-form-remember-me\").checked = true;\n")
-                    .append("document.getElementById(\"login-form-submit\").click();\n");
-            browser.execute(waitAndExec("login-form-submit", js.toString()));
-        } catch (IOException | JiraIntegrationException e) {
-            logger.error("Unable to login to JIRA Server", e);
-        }
+//        try {
+//            StringBuilder js = new StringBuilder();
+//            js.append("document.getElementById(\"login-form-username\").value = \""
+//                    + StringEscapeUtils.escapeEcmaScript(getCredential().getUsername()) + "\";\n")
+//                    .append("document.getElementById(\"login-form-password\").value = \""
+//                            + StringEscapeUtils.escapeEcmaScript(getCredential().getPassword()) + "\";\n")
+//                    .append("document.getElementById(\"login-form-remember-me\").checked = true;\n")
+//                    .append("document.getElementById(\"login-form-submit\").click();\n");
+//            browser.execute(waitAndExec("login-form-submit", js.toString()));
+//        } catch (IOException | JiraIntegrationException e) {
+//            logger.error("Unable to login to JIRA Server", e);
+//        }
     }
 
     protected String waitAndExec(String element, String js) {

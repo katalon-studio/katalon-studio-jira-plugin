@@ -23,6 +23,8 @@ public class ComposerJiraIntegrationMessageConstant extends NLS {
     public static String PREF_LBL_USERNAME;
 
     public static String PREF_LBL_PASSWORD;
+
+    public static String PREF_LBL_API_TOKEN;
     
     public static String PREF_CHCK_SHOW_PASSWORD;
 

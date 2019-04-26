@@ -9,14 +9,17 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
@@ -34,7 +37,9 @@ import com.katalon.plugin.jira.core.entity.JiraProject;
 import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
 
 public class JiraSettingsComposite implements JiraUIComponent {
-    
+
+    private static final String API_TOKEN_DOCUMENT_URL = "https://confluence.atlassian.com/cloud/api-tokens-938839638.html";
+
     private Logger logger = LoggerFactory.getLogger(JiraSettingsComposite.class);
 
     private Composite container;
@@ -66,6 +71,8 @@ public class JiraSettingsComposite implements JiraUIComponent {
     private Button chckAutoSubmitTestResult;
 
     private Button chckEncrypt;
+
+    private Link linkApiToken;
 
     public JiraSettingsComposite() {
         settingStore = getSettingStore();
@@ -102,6 +109,13 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 MessageDialog.openInformation(shell, StringConstants.INFO,
                         MessageFormat.format(ComposerJiraIntegrationMessageConstant.PREF_MSG_ACCOUNT_CONNECTED,
                                 result.getUser().getDisplayName()));
+            }
+        });
+
+        linkApiToken.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                Program.launch(e.text);
             }
         });
     }
@@ -217,8 +231,11 @@ public class JiraSettingsComposite implements JiraUIComponent {
         txtUsername = new Text(grpAuthentication, SWT.BORDER);
         txtUsername.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
-        Label lblPassword = new Label(grpAuthentication, SWT.NONE);
-        lblPassword.setText(ComposerJiraIntegrationMessageConstant.PREF_LBL_PASSWORD);
+        linkApiToken = new Link(grpAuthentication, SWT.NONE);
+        linkApiToken.setText(String.format("%s/<a href=\"%s\">%s</a>:",
+                ComposerJiraIntegrationMessageConstant.PREF_LBL_PASSWORD,
+                API_TOKEN_DOCUMENT_URL,
+                ComposerJiraIntegrationMessageConstant.PREF_LBL_API_TOKEN));
 
         Composite passwordComposite = new Composite(grpAuthentication, SWT.NONE);
         passwordComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
