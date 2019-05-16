@@ -9,7 +9,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -92,6 +91,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 JiraConnectionJob job = new JiraConnectionJob(shell, getEdittingCredential());
                 JiraConnectionResult result = job.run();
                 if (result.getError() != null) {
+                    logger.error("Unable to connect to JIRA server", result.getError());
                     MessageDialog.openError(shell, StringConstants.ERROR, result.getError().getMessage());
                     return;
                 }
@@ -232,10 +232,9 @@ public class JiraSettingsComposite implements JiraUIComponent {
         txtUsername.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         linkApiToken = new Link(grpAuthentication, SWT.NONE);
-        linkApiToken.setText(String.format("%s/<a href=\"%s\">%s</a>:",
-                ComposerJiraIntegrationMessageConstant.PREF_LBL_PASSWORD,
-                API_TOKEN_DOCUMENT_URL,
-                ComposerJiraIntegrationMessageConstant.PREF_LBL_API_TOKEN));
+        linkApiToken.setText(
+                String.format("%s/<a href=\"%s\">%s</a>:", ComposerJiraIntegrationMessageConstant.PREF_LBL_PASSWORD,
+                        API_TOKEN_DOCUMENT_URL, ComposerJiraIntegrationMessageConstant.PREF_LBL_API_TOKEN));
 
         Composite passwordComposite = new Composite(grpAuthentication, SWT.NONE);
         passwordComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));

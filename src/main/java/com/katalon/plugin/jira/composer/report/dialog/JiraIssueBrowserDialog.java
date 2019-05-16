@@ -13,6 +13,7 @@ import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -235,7 +236,12 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
 
     @Override
     protected Point getInitialSize() {
-        return new Point(1200, 800);
+        if (getShell() != null) {
+            Rectangle rectangle = getShell().getDisplay().getPrimaryMonitor().getBounds();
+            return new Point(rectangle.width - 100, rectangle.height - 100);
+        } else {
+            return new Point(1200, 900);
+        }
     }
 
     @Override

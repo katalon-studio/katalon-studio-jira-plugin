@@ -64,7 +64,7 @@ public class JiraIntegrationRequest {
 
             return getResultFromRequest(client, request);
         } catch (IllegalArgumentException e) {
-            throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_INVALID_SERVER_URL);
+            throw new JiraIntegrationException(e);
         } catch (GeneralSecurityException e) {
             logger.error(e.getMessage());
         } catch (JiraIntegrationException e) {
@@ -87,7 +87,7 @@ public class JiraIntegrationRequest {
 
             return getResultFromRequest(client, request);
         } catch (IllegalArgumentException e) {
-            throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_INVALID_SERVER_URL);
+            throw new JiraIntegrationException(e);
         } catch (GeneralSecurityException e) {
             logger.error(e.getMessage());
         } catch (JiraIntegrationException e) {
@@ -113,7 +113,7 @@ public class JiraIntegrationRequest {
             put.setEntity(new StringEntity(content));
             getResultFromRequest(httpClient, put);
         } catch (IllegalArgumentException e) {
-            throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_INVALID_SERVER_URL);
+            throw new JiraIntegrationException(e);
         } catch (GeneralSecurityException e) {
             logger.error(e.getMessage());
         } catch (JiraIntegrationException e) {
@@ -131,7 +131,7 @@ public class JiraIntegrationRequest {
             post.setEntity(new StringEntity(content));
             getResultFromRequest(httpClient, post);
         } catch (IllegalArgumentException e) {
-            throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_INVALID_SERVER_URL);
+            throw new JiraIntegrationException(e);
         } catch (GeneralSecurityException e) {
             logger.error(e.getMessage());
         } catch (JiraIntegrationException e) {
@@ -152,7 +152,7 @@ public class JiraIntegrationRequest {
             post.setEntity(fileEntity);
             return getResultFromRequest(httpClient, post);
         } catch (IllegalArgumentException e) {
-            throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_INVALID_SERVER_URL);
+            throw new JiraIntegrationException(e);
         } catch (GeneralSecurityException e) {
             logger.error(e.getMessage());
         } catch (JiraIntegrationException e) {
@@ -223,7 +223,7 @@ public class JiraIntegrationRequest {
                             .format(JiraIntegrationMessageConstants.MSG_INVALID_REQUEST, request.getURI().toString()));
             }
         } catch (UnknownHostException ex) {
-            throw new JiraIntegrationException(JiraIntegrationMessageConstants.MSG_INVALID_SERVER_URL);
+            throw new JiraIntegrationException(JiraIntegrationMessageConstants.MSG_INVALID_SERVER_URL, ex);
         } catch (ClientProtocolException ex) {
             throw new JiraIntegrationException(MessageFormat.format(JiraIntegrationMessageConstants.MSG_INVALID_REQUEST,
                     request.getURI().toString()));

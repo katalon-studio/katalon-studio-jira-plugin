@@ -10,4 +10,8 @@ public class JiraIntegrationException extends Exception {
     public JiraIntegrationException(Exception ex) {
         super(ex);
     }
+    
+    public JiraIntegrationException(String message, Exception ex) {
+        super(message, ex);
+    }
 }
