@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
@@ -34,7 +35,6 @@ import com.katalon.plugin.jira.core.JiraCredential;
 import com.katalon.plugin.jira.core.entity.JiraIssueType;
 import com.katalon.plugin.jira.core.entity.JiraProject;
 import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
-
 public class JiraSettingsComposite implements JiraUIComponent {
 
     private static final String API_TOKEN_DOCUMENT_URL = "https://confluence.atlassian.com/cloud/api-tokens-938839638.html";
@@ -304,7 +304,12 @@ public class JiraSettingsComposite implements JiraUIComponent {
     public boolean okPressed() {
         try {
             settingStore.enableIntegration(chckEnableIntegration.getSelection());
-
+            if (StringUtils.isEmpty(txtUsername.getText()) || StringUtils.isEmpty(txtPassword.getText())
+                    || StringUtils.isEmpty(txtServerUrl.getText())) {
+                MessageDialog.openError(Display.getCurrent().getActiveShell(), StringConstants.ERROR,
+                        ComposerJiraIntegrationMessageConstant.REPORT_MSG_MUST_ENTER_REQUIRED_INFORMATION);
+                return false;
+            }
             boolean encryptionEnable = chckEncrypt.getSelection();
             settingStore.saveServerUrl(getTrimedValue(txtServerUrl), encryptionEnable);
             settingStore.saveUsername(getTrimedValue(txtUsername), encryptionEnable);

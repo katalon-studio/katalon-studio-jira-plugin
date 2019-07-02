@@ -13,6 +13,8 @@ public class ComposerJiraIntegrationMessageConstant extends NLS {
     }
 
     public static String PREF_CHCK_ENABLE_INTEGRATION;
+    
+    public static String REPORT_MSG_MUST_ENTER_REQUIRED_INFORMATION;
 
     public static String PREF_TITLE_AUTHENTICATION;
 
