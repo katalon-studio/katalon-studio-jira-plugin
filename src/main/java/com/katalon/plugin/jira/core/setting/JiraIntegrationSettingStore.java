@@ -12,6 +12,7 @@ import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_JIRA_PROJECT;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_TEST_RESULT_AUTOMATICALLY;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_USE_TEST_CASE_NAME_AS_SUMMARY;
+import static com.katalon.plugin.jira.core.constant.StringConstants.MIGRATE_PROJECT_SCOPE;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -92,6 +93,14 @@ public class JiraIntegrationSettingStore {
 
     public void enableAttachScreenshot(boolean enabled) throws IOException {
         delegate.setBoolean(PREF_SUBMIT_ATTACH_SCREENSHOT, enabled);
+    }
+    
+    public boolean isProjectScopeEnable() throws IOException {
+        return delegate.getBoolean(MIGRATE_PROJECT_SCOPE, false);
+    }
+
+    public void enableAddProjectScrope(boolean enabled) throws IOException {
+        delegate.setBoolean(MIGRATE_PROJECT_SCOPE, enabled);
     }
 
     public boolean isSubmitTestResultAutomatically() throws IOException {
