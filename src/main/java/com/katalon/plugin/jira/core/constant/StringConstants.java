@@ -5,6 +5,8 @@ public class StringConstants {
 
     public static final String JIRA_BUNDLE_ID = "com.katalon.katalon-studio-jira-plugin";
 
+    public static final String MIGRATE_PROJECT_SCOPE = "migrate.projectScope";
+    
     public static final String PREF_SUBMIT_JIRA_ISSUE_TYPE = "submit.jiraIssueType";
 
     public static final String PREF_SUBMIT_JIRA_PROJECT = "submit.jiraProject";

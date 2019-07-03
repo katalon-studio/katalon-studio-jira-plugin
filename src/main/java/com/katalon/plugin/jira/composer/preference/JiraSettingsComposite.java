@@ -1,8 +1,15 @@
 package com.katalon.plugin.jira.composer.preference;
 
 import java.io.IOException;
+import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -16,6 +23,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
@@ -34,6 +42,7 @@ import com.katalon.plugin.jira.core.JiraCredential;
 import com.katalon.plugin.jira.core.entity.JiraIssueType;
 import com.katalon.plugin.jira.core.entity.JiraProject;
 import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
+import com.katalon.plugin.jira.core.setting.StoredJiraObject;
 
 public class JiraSettingsComposite implements JiraUIComponent {
 
@@ -62,6 +71,10 @@ public class JiraSettingsComposite implements JiraUIComponent {
     private DisplayedComboboxObject<JiraProject> displayedJiraProject;
 
     private DisplayedComboboxObject<JiraIssueType> displayedJiraIssueType;
+
+    private List<JiraIssueType> allIssueTypes;
+    
+    private boolean projectScope;
 
     private User user;
 
@@ -99,12 +112,12 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 if (!result.isComplete()) {
                     return;
                 }
+                projectScope = true;
                 user = result.getUser();
+                allIssueTypes = Arrays.asList(result.getJiraIssueTypes().getStoredObject().getJiraObjects());
+
                 displayedJiraProject = result.getJiraProjects().updateDefaultURIFrom(displayedJiraProject);
                 updateCombobox(cbbProjects, displayedJiraProject);
-
-                displayedJiraIssueType = result.getJiraIssueTypes().updateDefaultURIFrom(displayedJiraIssueType);
-                updateCombobox(cbbIssueTypes, displayedJiraIssueType);
 
                 MessageDialog.openInformation(shell, StringConstants.INFO,
                         MessageFormat.format(ComposerJiraIntegrationMessageConstant.PREF_MSG_ACCOUNT_CONNECTED,
@@ -118,6 +131,49 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 Program.launch(e.text);
             }
         });
+
+        cbbProjects.addSelectionListener(new SelectionAdapter() {
+
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (projectScope) {
+                    int selection = cbbProjects.getSelectionIndex();
+                    JiraProject selectedJiraProject = displayedJiraProject.getStoredObject().getJiraObjects()[selection];
+                    displayedJiraIssueType = getIssueTypeForProject(selectedJiraProject);
+                    updateCombobox(cbbIssueTypes, displayedJiraIssueType);
+                }
+            }
+        });
+    }
+
+    private DisplayedComboboxObject<JiraIssueType> getIssueTypeForProject(JiraProject project) {
+        List<JiraIssueType> jiraIssueTypes = new ArrayList<>();
+        URI defaultURI = null;
+        Map<String, JiraIssueType> globalJiraIssueTypes = new HashMap<>();
+        for (JiraIssueType issueType : allIssueTypes) {
+            if (issueType.getScope() == null || issueType.getScope().getProject() == null) {
+                globalJiraIssueTypes.put(issueType.getName(), issueType);
+                continue;
+            }
+            if (!issueType.getScope().getProject().getId().equals(project.getId())) {
+                continue;
+            }
+            jiraIssueTypes.add(issueType);
+            if ("Bug".equals(issueType.getName())) {
+                defaultURI = issueType.getSelf();
+            }
+        }
+        if (jiraIssueTypes.isEmpty()) {
+            for (Entry<String, JiraIssueType> global : globalJiraIssueTypes.entrySet()) {
+                JiraIssueType issueType = global.getValue();
+                if ("Bug".equals(issueType.getName())) {
+                    defaultURI = issueType.getSelf();
+                }
+                jiraIssueTypes.add(issueType);
+            }
+        }
+        return new DisplayedComboboxObject<>(
+                new StoredJiraObject<>(defaultURI, jiraIssueTypes.toArray(new JiraIssueType[0])));
     }
 
     private void maskPasswordField() {
@@ -167,13 +223,28 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
             displayedJiraProject = new DisplayedComboboxObject<>(settingStore.getStoredJiraProject());
             updateCombobox(cbbProjects, displayedJiraProject);
-
-            displayedJiraIssueType = new DisplayedIssueTypeComboboxObject(settingStore.getStoredJiraIssueType());
-            updateCombobox(cbbIssueTypes, displayedJiraIssueType);
+            
+            StoredJiraObject<JiraIssueType> storedJiraIssueType = settingStore.getStoredJiraIssueType();
+            
+            projectScope = settingStore.isProjectScopeEnable();
+            if (storedJiraIssueType != null && storedJiraIssueType.getJiraObjects() != null) {
+                if (projectScope) {
+                    allIssueTypes = Arrays.asList(storedJiraIssueType.getJiraObjects());
+                    if (allIssueTypes != null && !allIssueTypes.isEmpty() && cbbProjects.getSelectionIndex() >= 0) {
+                        int selectionProjectIndex = cbbProjects.getSelectionIndex();
+                        displayedJiraIssueType = getIssueTypeForProject(
+                                displayedJiraProject.getStoredObject().getJiraObjects()[selectionProjectIndex]);
+                        displayedJiraIssueType.getStoredObject().setDefaultURI(storedJiraIssueType.getDefaultProjectURI());
+                        updateCombobox(cbbIssueTypes, displayedJiraIssueType);
+                    }
+                } else {
+                    displayedJiraIssueType = new DisplayedComboboxObject<>(settingStore.getStoredJiraIssueType());
+                    updateCombobox(cbbIssueTypes, displayedJiraIssueType);
+                }
+            }
 
             user = settingStore.getJiraUser();
         } catch (IOException | GeneralSecurityException e) {
-
             MessageDialog.openError(mainComposite.getShell(), StringConstants.ERROR, e.getMessage());
         }
     }
@@ -183,6 +254,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
         int defaultProjectIndex = displayedJiraObject.getDefaultObjectIndex();
         if (defaultProjectIndex >= 0) {
             combobox.select(defaultProjectIndex);
+            combobox.notifyListeners(SWT.Selection, new Event());
         }
     }
 
@@ -320,8 +392,18 @@ public class JiraSettingsComposite implements JiraUIComponent {
             displayedJiraProject.setDefaultObjectIndex(cbbProjects.getSelectionIndex());
             settingStore.saveStoredJiraProject(displayedJiraProject.getStoredObject());
 
-            displayedJiraIssueType.setDefaultObjectIndex(cbbIssueTypes.getSelectionIndex());
-            settingStore.saveStoredJiraIssueType(displayedJiraIssueType.getStoredObject());
+            int issueTypeSelection = cbbIssueTypes.getSelectionIndex();
+            if (issueTypeSelection >= 0 && allIssueTypes != null) {
+                displayedJiraIssueType.setDefaultObjectIndex(issueTypeSelection);
+                JiraIssueType selectedIssueType = displayedJiraIssueType.getStoredObject()
+                        .getJiraObjects()[issueTypeSelection];
+
+                StoredJiraObject<JiraIssueType> storedJiraIssueType = new StoredJiraObject<JiraIssueType>(
+                        selectedIssueType.getSelf(), allIssueTypes.toArray(new JiraIssueType[0]));
+                settingStore.saveStoredJiraIssueType(storedJiraIssueType);
+            }
+
+            settingStore.enableAddProjectScrope(projectScope);
 
             settingStore.saveStore();
             return true;
