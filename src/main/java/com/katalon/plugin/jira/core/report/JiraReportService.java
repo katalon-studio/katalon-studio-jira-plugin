@@ -46,15 +46,29 @@ public class JiraReportService implements JiraComponent {
         List<JiraAttachment> jiraAttachments = new ArrayList<>();
         if (getSettingStore().isAttachScreenshotEnabled()) {
             for (String screenshot : logRecord.getAttachments()) {
+                File screenshotFile = new File(report.getFolderLocation(), screenshot);
+                if (!screenshotFile.exists()) {
+                    screenshotFile = new File(screenshot);
+                }
+                if (!screenshotFile.exists()) {
+                    continue;
+                }
                 jiraAttachments.addAll(handler.uploadAttachment(getCredential(), issue,
-                        new File(report.getFolderLocation(), screenshot).getAbsolutePath()));
+                        screenshotFile.getAbsolutePath()));
             }
         }
 
         if (getSettingStore().isAttachLogEnabled()) {
-            for (String logFile : testSuiteRecord.getLogFiles()) {
+            for (String logPath : testSuiteRecord.getLogFiles()) {
+                File logFile = new File(report.getFolderLocation(), logPath);
+                if (!logFile.exists()) {
+                    logFile = new File(logPath);
+                }
+                if (!logFile.exists()) {
+                    continue;
+                }
                 jiraAttachments.addAll(handler.uploadAttachment(getCredential(), issue,
-                        new File(report.getFolderLocation(), logFile).getAbsolutePath()));
+                        logFile.getAbsolutePath()));
             }
         }
     }
