@@ -10,9 +10,11 @@ import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_ATTACH_SCREENSHOT;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_JIRA_ISSUE_TYPE;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_JIRA_PROJECT;
+import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_JIRA_CLOUD_FIELD;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_TEST_RESULT_AUTOMATICALLY;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_USE_TEST_CASE_NAME_AS_SUMMARY;
 import static com.katalon.plugin.jira.core.constant.StringConstants.MIGRATE_PROJECT_SCOPE;
+import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_FETCH_JIRA_CLOUD_CONTENT;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -26,6 +28,7 @@ import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.preference.PluginPreference;
 import com.katalon.plugin.jira.core.JiraAPIURL;
 import com.katalon.plugin.jira.core.JiraCredential;
+import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraIssueType;
 import com.katalon.plugin.jira.core.entity.JiraProject;
 import com.katalon.plugin.jira.core.util.JsonUtil;
@@ -94,7 +97,7 @@ public class JiraIntegrationSettingStore {
     public void enableAttachScreenshot(boolean enabled) throws IOException {
         delegate.setBoolean(PREF_SUBMIT_ATTACH_SCREENSHOT, enabled);
     }
-    
+
     public boolean isProjectScopeEnable() throws IOException {
         return delegate.getBoolean(MIGRATE_PROJECT_SCOPE, false);
     }
@@ -159,6 +162,30 @@ public class JiraIntegrationSettingStore {
         delegate.setString(PREF_AUTH_USER, JsonUtil.toJson(user, false));
     }
 
+    public StoredJiraObject<JiraField> getStoredJiraCloudField() throws IOException {
+        StoredJiraObject<JiraField> instance = new StoredJiraObject<>(null, null);
+        String objectAsString = delegate.getString(PREF_SUBMIT_JIRA_CLOUD_FIELD, StringUtils.EMPTY);
+        try {
+            Type collectionType = new TypeToken<StoredJiraObject<JiraField>>() {}.getType();
+            StoredJiraObject<JiraField> storedObject = JsonUtil.fromJson(objectAsString, collectionType);
+            return storedObject != null ? storedObject : instance;
+        } catch (IllegalArgumentException e) {
+            return instance;
+        }
+    }
+
+    public void saveStoredJiraCloudField(StoredJiraObject<JiraField> storedJiraField) throws IOException {
+        delegate.setString(PREF_SUBMIT_JIRA_CLOUD_FIELD, JsonUtil.toJson(storedJiraField, false));
+    }
+
+    public boolean isEnableFetchingContentFromJiraCloud() {
+        return delegate.getBoolean(PREF_SUBMIT_FETCH_JIRA_CLOUD_CONTENT, false);
+    }
+
+    public void enableFetchingContentFromJiraCloud(boolean enable) {
+        delegate.setBoolean(PREF_SUBMIT_FETCH_JIRA_CLOUD_CONTENT, enable);
+    }
+
     public JiraCredential getJiraCredential() throws IOException, GeneralSecurityException {
         JiraCredential credential = new JiraCredential();
 
@@ -168,7 +195,7 @@ public class JiraIntegrationSettingStore {
         credential.setPassword(getPassword(authenticationEncrypted));
         return credential;
     }
-    
+
     public void saveStore() throws ResourceException {
         delegate.save();
     }

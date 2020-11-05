@@ -19,6 +19,7 @@ import com.katalon.platform.api.report.TestSuiteRecord;
 import com.katalon.plugin.jira.core.constant.StringConstants;
 import com.katalon.plugin.jira.core.entity.ImprovedIssue;
 import com.katalon.plugin.jira.core.entity.JiraAttachment;
+import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraFilter;
 import com.katalon.plugin.jira.core.entity.JiraIssue;
 import com.katalon.plugin.jira.core.entity.JiraIssueLink;
@@ -49,6 +50,10 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
 
     public JiraProject[] getJiraProjects(JiraCredential credential) throws JiraIntegrationException {
         return getJiraArrayObjects(credential, JiraAPIURL.getProjectAPIUrl(credential), JiraProject[].class);
+    }
+
+    public JiraField[] getJiraFields(JiraCredential credential) throws JiraIntegrationException {
+        return getJiraArrayObjects(credential, JiraAPIURL.getFieldAPIUrl(credential), JiraField[].class);
     }
 
     public List<JiraAttachment> uploadAttachment(JiraCredential credential, JiraIssue issue, String logFilePath)
@@ -92,7 +97,7 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
         sendPostRequest(credential, JiraAPIURL.getIssueLinkUrl(credential), issueLink.toJson());
     }
 
-    public Optional<Field> getKatalonCustomField(JiraCredential credential) throws JiraIntegrationException {
+    public Optional<Field> getKatalonJiraServerCustomField(JiraCredential credential) throws JiraIntegrationException {
         Field[] fields = getJiraArrayObjects(credential, JiraAPIURL.getFieldAPIUrl(credential), Field[].class);
         if (fields == null) {
             return Optional.empty();

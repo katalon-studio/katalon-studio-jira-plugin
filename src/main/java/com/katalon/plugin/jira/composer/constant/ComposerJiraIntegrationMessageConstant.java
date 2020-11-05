@@ -14,9 +14,15 @@ public class ComposerJiraIntegrationMessageConstant extends NLS {
 
     public static String PREF_CHCK_ENABLE_INTEGRATION;
 
+    public static String LBL_CUSTOM_FIELD;
+
+    public static String PREF_CHCK_ENABLE_FETCHING_OPTIONS;
+
     public static String PREF_TITLE_AUTHENTICATION;
 
     public static String PREF_TITLE_SUBMIT_OPTIONS;
+
+    public static String PREF_TITLE_FETCH_OPTIONS;
 
     public static String PREF_LBL_SERVER_URL;
 
@@ -31,6 +37,8 @@ public class ComposerJiraIntegrationMessageConstant extends NLS {
     public static String PREF_CHCK_ENCRYPT_PASSWORD;
 
     public static String PREF_LBL_CONNECT;
+
+    public static String PREF_LBL_FETCH_CUSTOM_FIELDS;
 
     public static String PREF_LBL_DF_JIRA_PROJECT;
 
@@ -53,6 +61,8 @@ public class ComposerJiraIntegrationMessageConstant extends NLS {
     public static String JOB_SUB_TASK_FETCHING_PROJECTS;
 
     public static String JOB_SUB_TASK_FETCHING_ISSUE_TYPES;
+
+    public static String JOB_SUB_TASK_FETCHING_JIRA_FIELDS;
     
     public static String JOB_SUB_TASK_FETCHING_FIELDS;
 
@@ -132,4 +142,10 @@ public class ComposerJiraIntegrationMessageConstant extends NLS {
     public static String URL_SETTINGS_JIRA;
     
     public static String URL_TEST_CASE_INTEGRATION_JIRA;
+
+    public static String DOCUMENT_URL_JIRA_CLOUD_FETCH_CONTENT;
+    
+    public static String ERROR_UNABLE_TO_SAVE_JIRA_SETTING;
+
+    public static String ERROR_CUSTOM_FIELD_NOT_FOUND;
 }

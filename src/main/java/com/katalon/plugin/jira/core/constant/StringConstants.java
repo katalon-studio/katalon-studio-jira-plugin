@@ -11,6 +11,10 @@ public class StringConstants {
 
     public static final String PREF_SUBMIT_JIRA_PROJECT = "submit.jiraProject";
 
+    public static final String PREF_SUBMIT_JIRA_CLOUD_FIELD = "submit.jiraCloudField";
+
+    public static final String PREF_SUBMIT_FETCH_JIRA_CLOUD_CONTENT = "submit.jiraFetchJiraCloudContent";
+
     public static final String PREF_SUBMIT_ATTACH_LOG = "submit.attachLog";
 
     public static final String PREF_SUBMIT_ATTACH_SCREENSHOT = "submit.attachScreenshot";
