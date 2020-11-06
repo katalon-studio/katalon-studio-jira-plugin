@@ -37,14 +37,18 @@ import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.plugin.jira.composer.JiraUIComponent;
 import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
 import com.katalon.plugin.jira.composer.constant.StringConstants;
+import com.katalon.plugin.jira.composer.dialog.HelpCompositeForDialog;
 import com.katalon.plugin.jira.composer.preference.JiraConnectionJob.JiraConnectionResult;
 import com.katalon.plugin.jira.core.JiraCredential;
+import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraIssueType;
 import com.katalon.plugin.jira.core.entity.JiraProject;
 import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
 import com.katalon.plugin.jira.core.setting.StoredJiraObject;
 
 public class JiraSettingsComposite implements JiraUIComponent {
+
+    private static final String DOCUMENT_URL = ComposerJiraIntegrationMessageConstant.DOCUMENT_URL_JIRA_CLOUD_FETCH_CONTENT;
 
     private static final String API_TOKEN_DOCUMENT_URL = "https://confluence.atlassian.com/cloud/api-tokens-938839638.html";
 
@@ -54,7 +58,8 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
     private Composite enablerComposite;
 
-    private Button chckEnableIntegration;
+    private Button chckEnableIntegration, chckAutoSubmitTestResult, chckEncrypt, chckEnableFetchingContentFromJiraCloud,
+            btnFetchFields, btnConnect;
 
     private Composite mainComposite;
 
@@ -64,25 +69,21 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
     private JiraIntegrationSettingStore settingStore;
 
-    private Button btnConnect;
-
-    private Combo cbbIssueTypes, cbbProjects;
+    private Combo cbbIssueTypes, cbbProjects, cbbFields;
 
     private DisplayedComboboxObject<JiraProject> displayedJiraProject;
 
     private DisplayedComboboxObject<JiraIssueType> displayedJiraIssueType;
 
+    private DisplayedComboboxObject<JiraField> displayedJiraField;
+
     private List<JiraIssueType> allIssueTypes;
-    
+
     private boolean projectScope;
 
     private User user;
 
     private Shell shell;
-
-    private Button chckAutoSubmitTestResult;
-
-    private Button chckEncrypt;
 
     private Link linkApiToken;
 
@@ -119,12 +120,23 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 displayedJiraProject = result.getJiraProjects().updateDefaultURIFrom(displayedJiraProject);
                 updateCombobox(cbbProjects, displayedJiraProject);
 
+                displayedJiraField = result.getJiraFields().updateDefaultURIFrom(displayedJiraField);
+                updateCombobox(cbbFields, displayedJiraField);
+
                 MessageDialog.openInformation(shell, StringConstants.INFO,
                         MessageFormat.format(ComposerJiraIntegrationMessageConstant.PREF_MSG_ACCOUNT_CONNECTED,
                                 result.getUser().getDisplayName()));
             }
         });
-
+        btnFetchFields.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                Shell shell = getShell();
+                JiraConnectionJob job = new JiraConnectionJob(shell, getEdittingCredential());
+                JiraConnectionResult result = job.run();
+                displayedJiraField = result.getJiraFields().updateDefaultURIFrom(displayedJiraField);
+            }
+        });
         linkApiToken.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -138,10 +150,31 @@ public class JiraSettingsComposite implements JiraUIComponent {
             public void widgetSelected(SelectionEvent e) {
                 if (projectScope) {
                     int selection = cbbProjects.getSelectionIndex();
-                    JiraProject selectedJiraProject = displayedJiraProject.getStoredObject().getJiraObjects()[selection];
+                    JiraProject selectedJiraProject = displayedJiraProject.getStoredObject()
+                            .getJiraObjects()[selection];
                     displayedJiraIssueType = getIssueTypeForProject(selectedJiraProject);
                     updateCombobox(cbbIssueTypes, displayedJiraIssueType);
                 }
+            }
+        });
+        btnFetchFields.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                Shell shell = getShell();
+                JiraConnectionJob job = new JiraConnectionJob(shell, getEdittingCredential());
+                JiraConnectionResult result = job.fetchFields();
+                if (result.getError() != null) {
+                    logger.error("Unable to fetch fields from JIRA", result.getError());
+                    MessageDialog.openError(shell, StringConstants.ERROR, result.getError().getMessage());
+                    return;
+                }
+
+                if (!result.isComplete()) {
+                    return;
+                }
+
+                displayedJiraField = result.getJiraFields().updateDefaultURIFrom(displayedJiraField);
+                updateCombobox(cbbFields, displayedJiraField);
             }
         });
     }
@@ -223,9 +256,9 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
             displayedJiraProject = new DisplayedComboboxObject<>(settingStore.getStoredJiraProject());
             updateCombobox(cbbProjects, displayedJiraProject);
-            
+
             StoredJiraObject<JiraIssueType> storedJiraIssueType = settingStore.getStoredJiraIssueType();
-            
+
             projectScope = settingStore.isProjectScopeEnable();
             if (storedJiraIssueType != null && storedJiraIssueType.getJiraObjects() != null) {
                 if (projectScope) {
@@ -234,7 +267,8 @@ public class JiraSettingsComposite implements JiraUIComponent {
                         int selectionProjectIndex = cbbProjects.getSelectionIndex();
                         displayedJiraIssueType = getIssueTypeForProject(
                                 displayedJiraProject.getStoredObject().getJiraObjects()[selectionProjectIndex]);
-                        displayedJiraIssueType.getStoredObject().setDefaultURI(storedJiraIssueType.getDefaultProjectURI());
+                        displayedJiraIssueType.getStoredObject()
+                                .setDefaultURI(storedJiraIssueType.getDefaultProjectURI());
                         updateCombobox(cbbIssueTypes, displayedJiraIssueType);
                     }
                 } else {
@@ -242,6 +276,10 @@ public class JiraSettingsComposite implements JiraUIComponent {
                     updateCombobox(cbbIssueTypes, displayedJiraIssueType);
                 }
             }
+
+            chckEnableFetchingContentFromJiraCloud.setSelection(settingStore.isEnableFetchingContentFromJiraCloud());
+            displayedJiraField = new DisplayedComboboxObject<>(settingStore.getStoredJiraCloudField());
+            updateCombobox(cbbFields, displayedJiraField);
 
             user = settingStore.getJiraUser();
         } catch (IOException | GeneralSecurityException e) {
@@ -279,6 +317,8 @@ public class JiraSettingsComposite implements JiraUIComponent {
         createAuthenticationGroup();
 
         createSubmitOptionsGroup();
+
+        createFetchCustomFieldGroup();
 
         return container;
     }
@@ -373,6 +413,38 @@ public class JiraSettingsComposite implements JiraUIComponent {
         chckAutoSubmitTestResult.setText(ComposerJiraIntegrationMessageConstant.PREF_CHCK_AUTO_SUBMIT_TEST_RESULT);
     }
 
+    private void createFetchCustomFieldGroup() {
+        Group grpFetchOptions = new Group(mainComposite, SWT.NONE);
+        grpFetchOptions.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+        GridLayout glGrpFetchOptions = new GridLayout(1, false);
+        glGrpFetchOptions.horizontalSpacing = 15;
+        grpFetchOptions.setLayout(glGrpFetchOptions);
+        grpFetchOptions.setText(ComposerJiraIntegrationMessageConstant.PREF_TITLE_FETCH_OPTIONS);
+
+        chckEnableFetchingContentFromJiraCloud = new Button(grpFetchOptions, SWT.CHECK);
+        chckEnableFetchingContentFromJiraCloud.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 4, 1));
+        chckEnableFetchingContentFromJiraCloud
+                .setText(ComposerJiraIntegrationMessageConstant.PREF_CHCK_ENABLE_FETCHING_OPTIONS);
+
+        Composite customFieldsComposite = new Composite(grpFetchOptions, SWT.FILL);
+        GridLayout glCustomFieldsComposite = new GridLayout(4, false);
+        customFieldsComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+        customFieldsComposite.setLayout(glCustomFieldsComposite);
+
+        Label lblCustomField = new Label(customFieldsComposite, SWT.LEFT);
+        lblCustomField.setText(ComposerJiraIntegrationMessageConstant.LBL_CUSTOM_FIELD);
+
+        Composite helpComposite = new Composite(customFieldsComposite, SWT.NONE);
+        helpComposite.setLayout(new GridLayout(1, false));
+        new HelpCompositeForDialog(helpComposite, DOCUMENT_URL);
+
+        cbbFields = new Combo(customFieldsComposite, SWT.READ_ONLY);
+        cbbFields.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+
+        btnFetchFields = new Button(customFieldsComposite, SWT.RIGHT);
+        btnFetchFields.setText(ComposerJiraIntegrationMessageConstant.PREF_LBL_FETCH_CUSTOM_FIELDS);
+    }
+
     public boolean okPressed() {
         try {
             settingStore.enableIntegration(chckEnableIntegration.getSelection());
@@ -405,10 +477,15 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
             settingStore.enableAddProjectScrope(projectScope);
 
+            settingStore.enableFetchingContentFromJiraCloud(chckEnableFetchingContentFromJiraCloud.getSelection());
+
+            displayedJiraField.setDefaultObjectIndex(cbbFields.getSelectionIndex());
+            settingStore.saveStoredJiraCloudField(displayedJiraField.getStoredObject());
+
             settingStore.saveStore();
             return true;
         } catch (IOException | GeneralSecurityException | ResourceException e) {
-            logger.error("Unable to save JIRA setting", e);
+            logger.error(ComposerJiraIntegrationMessageConstant.ERROR_UNABLE_TO_SAVE_JIRA_SETTING, e);
             MessageDialog.openError(mainComposite.getShell(), StringConstants.ERROR, e.getMessage());
             return false;
         }

@@ -47,8 +47,11 @@ import com.katalon.plugin.jira.core.JiraIntegrationAuthenticationHandler;
 import com.katalon.plugin.jira.core.JiraIntegrationException;
 import com.katalon.plugin.jira.core.JiraObjectToEntityConverter;
 import com.katalon.plugin.jira.core.entity.ImprovedIssue;
+import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraFilter;
 import com.katalon.plugin.jira.core.entity.JiraIssue;
+import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
+import com.katalon.plugin.jira.core.setting.StoredJiraObject;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
 
 public class ImportJiraJQLHandler implements JiraUIComponent {
@@ -92,12 +95,12 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                 JiraRestClient restClient = null;
                 try {
                     monitor.setTaskName(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_FETCHING_KATALON_FIELD);
-                    Optional<Field> katalonCommentField = getKatalonCommentField(getCredential());
+                    JiraCredential credential = getCredential();
+                    Optional<Field> katalonCommentField = getKatalonCommentField(credential);
                     monitor.worked(1);
                     List<TestCaseEntity> testCases = new ArrayList<>();
 
                     JiraRestClientFactory clientFactory = new AsynchronousJiraRestClientFactory();
-                    JiraCredential credential = getCredential();
                     restClient = clientFactory.createWithBasicHttpAuthentication(
                             URI.create(credential.getServerUrl()), credential.getUsername(),
                             credential.getPassword());
@@ -162,8 +165,17 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
 
             private Optional<Field> getKatalonCommentField(JiraCredential jiraCredential) throws IOException {
                 try {
-                    return new JiraIntegrationAuthenticationHandler().getKatalonCustomField(jiraCredential);
-                } catch (JiraIntegrationException e) {
+                    String serverUrl = jiraCredential.getServerUrl();
+                    boolean isJiraCloud = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
+                    if (isJiraCloud) {
+                        JiraIntegrationSettingStore settingStore = getSettingStore();
+                        if (settingStore.isEnableFetchingContentFromJiraCloud()) {
+                            StoredJiraObject<JiraField> customField = settingStore.getStoredJiraCloudField();
+                            return Optional.ofNullable(customField.getDefaultJiraObject());
+                        }
+                    }
+                    return new JiraIntegrationAuthenticationHandler().getKatalonJiraServerCustomField(jiraCredential);
+                } catch (JiraIntegrationException exception) {
                     return Optional.empty();
                 }
             }
@@ -182,6 +194,19 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                     return StringUtils.EMPTY;
                 }
                 Object jsonComment = customFields.get(customFieldId);
+                if (jsonComment == null) {
+                    String serverUrl;
+                    try {
+                        serverUrl = getCredential().getServerUrl();
+                        boolean isJiraCloud = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
+                        if (isJiraCloud) {
+                            MessageDialog.openError(null, StringConstants.ERROR,
+                                    ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
+                        }
+                    } catch (IOException | JiraIntegrationException e) {
+                        return "";
+                    }
+                }
                 return jsonComment != null ? jsonComment.toString() : "";
             }
 

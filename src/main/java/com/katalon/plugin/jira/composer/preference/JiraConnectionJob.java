@@ -13,6 +13,7 @@ import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageC
 import com.katalon.plugin.jira.core.JiraCredential;
 import com.katalon.plugin.jira.core.JiraIntegrationAuthenticationHandler;
 import com.katalon.plugin.jira.core.JiraIntegrationException;
+import com.katalon.plugin.jira.core.entity.JiraField;
 import com.katalon.plugin.jira.core.entity.JiraIssueType;
 import com.katalon.plugin.jira.core.entity.JiraProject;
 import com.katalon.plugin.jira.core.setting.StoredJiraObject;
@@ -22,7 +23,7 @@ public class JiraConnectionJob extends JiraProgressDialog {
     private JiraCredential credential;
 
     private JiraConnectionResult result;
-    
+
     private JiraIntegrationAuthenticationHandler handler;
 
     public JiraConnectionJob(Shell parent, JiraCredential credential) {
@@ -38,7 +39,7 @@ public class JiraConnectionJob extends JiraProgressDialog {
             run(true, true, new IRunnableWithProgress() {
                 @Override
                 public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-                    monitor.beginTask(ComposerJiraIntegrationMessageConstant.JOB_TASK_JIRA_CONNECTION, 3);
+                    monitor.beginTask(ComposerJiraIntegrationMessageConstant.JOB_TASK_JIRA_CONNECTION, 4);
                     try {
                         monitor.subTask(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_VALIDATING_ACCOUNT);
                         validateJiraAccount();
@@ -52,6 +53,39 @@ public class JiraConnectionJob extends JiraProgressDialog {
 
                         monitor.subTask(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_FETCHING_ISSUE_TYPES);
                         getJiraIssueTypes();
+                        monitor.worked(1);
+
+                        monitor.subTask(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_FETCHING_JIRA_FIELDS);
+                        getJiraFields();
+                        monitor.worked(1);
+
+                        result.setComplete(true);
+                    } catch (JiraIntegrationException e) {
+                        result.setError(e);
+                    } finally {
+                        monitor.done();
+                    }
+                }
+            });
+        } catch (InvocationTargetException | InterruptedException ignored) {}
+        return result;
+    }
+
+    public JiraConnectionResult fetchFields() {
+        result = new JiraConnectionResult();
+        try {
+            run(true, true, new IRunnableWithProgress() {
+                @Override
+                public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+                    monitor.beginTask(ComposerJiraIntegrationMessageConstant.JOB_TASK_JIRA_CONNECTION, 2);
+                    try {
+                        monitor.subTask(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_VALIDATING_ACCOUNT);
+                        validateJiraAccount();
+                        monitor.worked(1);
+                        checkCanceled(monitor);
+
+                        monitor.subTask(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_FETCHING_JIRA_FIELDS);
+                        getJiraFields();
                         monitor.worked(1);
 
                         result.setComplete(true);
@@ -78,12 +112,18 @@ public class JiraConnectionJob extends JiraProgressDialog {
         result.setJiraIssueTypes(handler.getJiraIssuesTypes(credential));
     }
 
+    private void getJiraFields() throws JiraIntegrationException {
+        result.setJiraFields(handler.getJiraFields(credential));
+    }
+
     public class JiraConnectionResult extends JiraProgressResult {
         private User user;
 
         private DisplayedComboboxObject<JiraProject> jiraProjects;
 
         private DisplayedComboboxObject<JiraIssueType> jiraIssueTypes;
+
+        private DisplayedComboboxObject<JiraField> jiraFields;
 
         public JiraConnectionResult() {
             setComplete(false);
@@ -112,6 +152,14 @@ public class JiraConnectionJob extends JiraProgressDialog {
 
         public DisplayedComboboxObject<JiraProject> getJiraProjects() {
             return jiraProjects;
+        }
+
+        public void setJiraFields(JiraField[] jiraFields) {
+            this.jiraFields = new DisplayedComboboxObject<>(new StoredJiraObject<JiraField>(null, jiraFields));
+        }
+
+        public DisplayedComboboxObject<JiraField> getJiraFields() {
+            return jiraFields;
         }
     }
 }
