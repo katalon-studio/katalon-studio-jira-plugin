@@ -195,13 +195,14 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                 }
                 Object jsonComment = customFields.get(customFieldId);
                 if (jsonComment == null) {
-                    String serverUrl;
                     try {
-                        serverUrl = getCredential().getServerUrl();
+                        String serverUrl = getCredential().getServerUrl();
                         boolean isJiraCloud = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
                         if (isJiraCloud) {
-                            MessageDialog.openError(null, StringConstants.ERROR,
-                                    ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
+                            PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
+                                MessageDialog.openError(null, StringConstants.ERROR,
+                                        ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
+                            });
                         }
                     } catch (IOException | JiraIntegrationException e) {
                         return "";
