@@ -191,10 +191,6 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                 Map<String, Object> customFields = fields.getCustomFields();
                 String customFieldId = katalonField.get().getId();
                 if (!customFields.containsKey(customFieldId)) {
-                    return StringUtils.EMPTY;
-                }
-                Object jsonComment = customFields.get(customFieldId);
-                if (jsonComment == null) {
                     try {
                         String serverUrl = getCredential().getServerUrl();
                         boolean isJiraCloud = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
@@ -204,11 +200,11 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                                         ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
                             });
                         }
-                    } catch (IOException | JiraIntegrationException e) {
-                        return "";
-                    }
+                    } catch (IOException | JiraIntegrationException e) {}
+                    return StringUtils.EMPTY;
                 }
-                return jsonComment != null ? jsonComment.toString() : "";
+                Object jsonComment = customFields.get(customFieldId);
+                return jsonComment != null ? jsonComment.toString() : StringUtils.EMPTY;
             }
 
             private String getScriptForFeatureFile(SystemFileEntity systemFile) {
