@@ -191,23 +191,20 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                 Map<String, Object> customFields = fields.getCustomFields();
                 String customFieldId = katalonField.get().getId();
                 if (!customFields.containsKey(customFieldId)) {
+                    try {
+                        String serverUrl = getCredential().getServerUrl();
+                        boolean isJiraCloud = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
+                        if (isJiraCloud) {
+                            PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
+                                MessageDialog.openError(null, StringConstants.ERROR,
+                                        ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
+                            });
+                        }
+                    } catch (IOException | JiraIntegrationException e) {}
                     return StringUtils.EMPTY;
                 }
                 Object jsonComment = customFields.get(customFieldId);
-                if (jsonComment == null) {
-                    String serverUrl;
-                    try {
-                        serverUrl = getCredential().getServerUrl();
-                        boolean isJiraCloud = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
-                        if (isJiraCloud) {
-                            MessageDialog.openError(null, StringConstants.ERROR,
-                                    ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
-                        }
-                    } catch (IOException | JiraIntegrationException e) {
-                        return "";
-                    }
-                }
-                return jsonComment != null ? jsonComment.toString() : "";
+                return jsonComment != null ? jsonComment.toString() : StringUtils.EMPTY;
             }
 
             private String getScriptForFeatureFile(SystemFileEntity systemFile) {
