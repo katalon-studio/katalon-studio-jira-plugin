@@ -1,6 +1,9 @@
 package com.katalon.plugin.jira.composer.preference;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -56,7 +59,7 @@ public class JiraConnectionJob extends JiraProgressDialog {
                         monitor.worked(1);
 
                         monitor.subTask(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_FETCHING_JIRA_FIELDS);
-                        getJiraFields();
+                        getCustomFields();
                         monitor.worked(1);
 
                         result.setComplete(true);
@@ -85,7 +88,7 @@ public class JiraConnectionJob extends JiraProgressDialog {
                         checkCanceled(monitor);
 
                         monitor.subTask(ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_FETCHING_JIRA_FIELDS);
-                        getJiraFields();
+                        getCustomFields();
                         monitor.worked(1);
 
                         result.setComplete(true);
@@ -112,8 +115,11 @@ public class JiraConnectionJob extends JiraProgressDialog {
         result.setJiraIssueTypes(handler.getJiraIssuesTypes(credential));
     }
 
-    private void getJiraFields() throws JiraIntegrationException {
-        result.setJiraFields(handler.getJiraFields(credential));
+    private void getCustomFields() throws JiraIntegrationException {
+        JiraField[] customFields = Arrays.stream(handler.getJiraFields(credential))
+                .filter(each -> each.isCustom() == true)
+                .toArray(JiraField[]::new);
+        result.setJiraFields(customFields);
     }
 
     public class JiraConnectionResult extends JiraProgressResult {
