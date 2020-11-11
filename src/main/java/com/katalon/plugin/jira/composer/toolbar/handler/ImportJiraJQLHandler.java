@@ -55,6 +55,8 @@ import com.katalon.plugin.jira.core.setting.StoredJiraObject;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
 
 public class ImportJiraJQLHandler implements JiraUIComponent {
+    
+    private boolean ableToGetCustomFieldContentFromJiraCloud;
 
     public void execute(Shell activeShell) {
         ImportJiraJQLDialog dialog = new ImportJiraJQLDialog(activeShell);
@@ -106,6 +108,7 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                             credential.getPassword());
                     DateTimeZone.setProvider(new UTCProvider());
 
+                    ableToGetCustomFieldContentFromJiraCloud = true;
                     for (JiraIssue issue : issues) {
                         if (monitor.isCanceled()) {
                             return Status.CANCEL_STATUS;
@@ -142,7 +145,12 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                         testCases.add(testCase);
                         monitor.worked(1);
                     }
-
+                    if (!ableToGetCustomFieldContentFromJiraCloud) {
+                        PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
+                            MessageDialog.openError(null, StringConstants.ERROR,
+                                    ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
+                        });
+                    }
                     TestExplorerActionService explorerActionService = PlatformUtil
                             .getUIService(TestExplorerActionService.class);
                     explorerActionService.refreshFolder(currentProject, folder);
@@ -191,16 +199,7 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                 Map<String, Object> customFields = fields.getCustomFields();
                 String customFieldId = katalonField.get().getId();
                 if (!customFields.containsKey(customFieldId)) {
-                    try {
-                        String serverUrl = getCredential().getServerUrl();
-                        boolean isJiraCloud = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
-                        if (isJiraCloud) {
-                            PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
-                                MessageDialog.openError(null, StringConstants.ERROR,
-                                        ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
-                            });
-                        }
-                    } catch (IOException | JiraIntegrationException e) {}
+                    ableToGetCustomFieldContentFromJiraCloud = false;
                     return StringUtils.EMPTY;
                 }
                 Object jsonComment = customFields.get(customFieldId);
