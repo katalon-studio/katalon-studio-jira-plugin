@@ -70,7 +70,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
     private JiraIntegrationSettingStore settingStore;
 
     private Combo cbbIssueTypes, cbbProjects, cbbFields;
-    
+
     private DisplayedComboboxObject<JiraProject> displayedJiraProject;
 
     private DisplayedComboboxObject<JiraIssueType> displayedJiraIssueType;
@@ -127,6 +127,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 if (grpFetchOptions.isEnabled()) {
                     displayedJiraField = result.getJiraFields().updateDefaultURIFrom(displayedJiraField);
                     updateCombobox(cbbFields, displayedJiraField);
+                    new AutoCompleteComboInput(cbbFields).build();
                 }
 
                 MessageDialog.openInformation(shell, StringConstants.INFO,
@@ -181,6 +182,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
                 displayedJiraField = result.getJiraFields().updateDefaultURIFrom(displayedJiraField);
                 updateCombobox(cbbFields, displayedJiraField);
+                new AutoCompleteComboInput(cbbFields).build();
             }
         });
     }
@@ -289,6 +291,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
                         .setSelection(settingStore.isEnableFetchingContentFromJiraCloud());
                 displayedJiraField = new DisplayedComboboxObject<>(settingStore.getStoredJiraCloudField());
                 updateCombobox(cbbFields, displayedJiraField);
+                new AutoCompleteComboInput(cbbFields).build();
             }
             user = settingStore.getJiraUser();
         } catch (IOException | GeneralSecurityException e) {
@@ -447,7 +450,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
         helpComposite.setLayout(new GridLayout(1, false));
         new HelpCompositeForDialog(helpComposite, DOCUMENT_URL);
 
-        cbbFields = new Combo(customFieldsComposite, SWT.READ_ONLY);
+        cbbFields = new Combo(customFieldsComposite, SWT.NONE);
         cbbFields.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         btnFetchFields = new Button(customFieldsComposite, SWT.RIGHT);
