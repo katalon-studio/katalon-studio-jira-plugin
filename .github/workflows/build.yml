@@ -16,5 +16,11 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v1
 
-    - name: Build with Maven
+    - name: Build
       run: mvn clean package
+      run: mkdir build-package && cp target/*.jar build-package
+    - name: Checkout package place
+      uses: actions/upload-artifact@v2
+      with:
+        name: Package
+        path: build-package
