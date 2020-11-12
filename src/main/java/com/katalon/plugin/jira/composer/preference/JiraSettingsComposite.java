@@ -513,7 +513,6 @@ public class JiraSettingsComposite implements JiraUIComponent {
     }
 
     private void enableIntegrationComposite() {
-        boolean isEnableIntegration = chckEnableIntegration.getSelection();
         recursiveSetEnabled(mainComposite, chckEnableIntegration.getSelection());
     }
 
