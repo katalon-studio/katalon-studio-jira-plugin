@@ -1,0 +1,11 @@
+name: Katalon Studio Jira plugin CI
+
+on:
+  push:
+    branches:
+    - dev
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - run: mvn clean package
