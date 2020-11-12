@@ -4,8 +4,17 @@ on:
   push:
     branches:
     - dev
+  pull_request:
+    branches:
+    - dev
+
+
 jobs:
   build:
     runs-on: windows-latest
     steps:
-    - run: mvn clean package
+    - name: Check out code
+      uses: actions/checkout@v1
+
+    - name: Build with Maven
+      run: mvn clean package
