@@ -98,7 +98,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 enableIntegrationComposite();
-                enableFetchOptionsComposite();
+                enableFetchOptionsComposite(chckEnableIntegration.getSelection());
             }
         });
         btnConnect.addSelectionListener(new SelectionAdapter() {
@@ -108,6 +108,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 JiraConnectionJob job = new JiraConnectionJob(shell, getEdittingCredential());
                 JiraConnectionResult result = job.run();
                 if (result.getError() != null) {
+                    enableFetchOptionsComposite(false);
                     logger.error("Unable to connect to JIRA server", result.getError());
                     MessageDialog.openError(shell, StringConstants.ERROR, result.getError().getMessage());
                     return;
@@ -123,7 +124,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 displayedJiraProject = result.getJiraProjects().updateDefaultURIFrom(displayedJiraProject);
                 updateCombobox(cbbProjects, displayedJiraProject);
 
-                enableFetchOptionsComposite();
+                enableFetchOptionsComposite(true);
                 if (grpFetchOptions.isEnabled()) {
                     displayedJiraField = result.getJiraFields().updateDefaultURIFrom(displayedJiraField);
                     updateCombobox(cbbFields, displayedJiraField);
@@ -241,10 +242,6 @@ public class JiraSettingsComposite implements JiraUIComponent {
         }
     }
 
-    private void enableIntegrationComposite() {
-        recursiveSetEnabled(mainComposite, chckEnableIntegration.getSelection());
-    }
-
     public void initializeData() {
         try {
             chckEnableIntegration.setSelection(settingStore.isIntegrationEnabled());
@@ -285,7 +282,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 }
             }
 
-            enableFetchOptionsComposite();
+            enableFetchOptionsComposite(chckEnableIntegration.getSelection());
             if (grpFetchOptions.isEnabled()) {
                 chckEnableFetchingContentFromJiraCloud
                         .setSelection(settingStore.isEnableFetchingContentFromJiraCloud());
@@ -515,9 +512,14 @@ public class JiraSettingsComposite implements JiraUIComponent {
         return StringUtils.defaultString(text.getText()).trim();
     }
 
-    private void enableFetchOptionsComposite() {
+    private void enableIntegrationComposite() {
+        boolean isEnableIntegration = chckEnableIntegration.getSelection();
+        recursiveSetEnabled(mainComposite, chckEnableIntegration.getSelection());
+    }
+
+    private void enableFetchOptionsComposite(boolean enable) {
         String serverUrl = txtServerUrl.getText();
         boolean isServerUrl = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
-        recursiveSetEnabled(grpFetchOptions, isServerUrl);
+        recursiveSetEnabled(grpFetchOptions, enable && isServerUrl);
     }
 }
