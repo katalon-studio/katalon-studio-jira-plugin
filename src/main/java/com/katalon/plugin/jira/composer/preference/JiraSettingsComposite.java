@@ -105,7 +105,6 @@ public class JiraSettingsComposite implements JiraUIComponent {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 Shell shell = getShell();
-                enableFetchOptionsComposite();
                 JiraConnectionJob job = new JiraConnectionJob(shell, getEdittingCredential());
                 JiraConnectionResult result = job.run();
                 if (result.getError() != null) {
@@ -124,6 +123,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 displayedJiraProject = result.getJiraProjects().updateDefaultURIFrom(displayedJiraProject);
                 updateCombobox(cbbProjects, displayedJiraProject);
 
+                enableFetchOptionsComposite();
                 if (grpFetchOptions.isEnabled()) {
                     displayedJiraField = result.getJiraFields().updateDefaultURIFrom(displayedJiraField);
                     updateCombobox(cbbFields, displayedJiraField);
