@@ -2,6 +2,8 @@ package com.katalon.plugin.jira.composer.preference;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -116,10 +118,12 @@ public class JiraConnectionJob extends JiraProgressDialog {
     }
 
     private void getCustomFields() throws JiraIntegrationException {
-        JiraField[] customFields = Arrays.stream(handler.getJiraFields(credential))
+        List<JiraField> rawFields = Arrays.asList(handler.getJiraFields(credential));
+        JiraField[] sortedFields = rawFields.stream()
                 .filter(each -> each.isCustom() == true)
+                .sorted(Comparator.comparing(JiraField::getName, String.CASE_INSENSITIVE_ORDER))
                 .toArray(JiraField[]::new);
-        result.setJiraFields(customFields);
+        result.setJiraFields(sortedFields);
     }
 
     public class JiraConnectionResult extends JiraProgressResult {

@@ -87,6 +87,8 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
     private Link linkApiToken;
 
+    private Group grpFetchOptions;
+
     public JiraSettingsComposite() {
         settingStore = getSettingStore();
     }
@@ -96,12 +98,14 @@ public class JiraSettingsComposite implements JiraUIComponent {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 enableIntegrationComposite();
+                enableFetchOptionsComposite();
             }
         });
         btnConnect.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 Shell shell = getShell();
+                enableFetchOptionsComposite();
                 JiraConnectionJob job = new JiraConnectionJob(shell, getEdittingCredential());
                 JiraConnectionResult result = job.run();
                 if (result.getError() != null) {
@@ -120,8 +124,11 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 displayedJiraProject = result.getJiraProjects().updateDefaultURIFrom(displayedJiraProject);
                 updateCombobox(cbbProjects, displayedJiraProject);
 
-                displayedJiraField = result.getJiraFields().updateDefaultURIFrom(displayedJiraField);
-                updateCombobox(cbbFields, displayedJiraField);
+                if (grpFetchOptions.isEnabled()) {
+                    displayedJiraField = result.getJiraFields().updateDefaultURIFrom(displayedJiraField);
+                    updateCombobox(cbbFields, displayedJiraField);
+                    new AutoCompleteComboInput(cbbFields).build();
+                }
 
                 MessageDialog.openInformation(shell, StringConstants.INFO,
                         MessageFormat.format(ComposerJiraIntegrationMessageConstant.PREF_MSG_ACCOUNT_CONNECTED,
@@ -175,6 +182,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
                 displayedJiraField = result.getJiraFields().updateDefaultURIFrom(displayedJiraField);
                 updateCombobox(cbbFields, displayedJiraField);
+                new AutoCompleteComboInput(cbbFields).build();
             }
         });
     }
@@ -277,10 +285,14 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 }
             }
 
-            chckEnableFetchingContentFromJiraCloud.setSelection(settingStore.isEnableFetchingContentFromJiraCloud());
-            displayedJiraField = new DisplayedComboboxObject<>(settingStore.getStoredJiraCloudField());
-            updateCombobox(cbbFields, displayedJiraField);
-
+            enableFetchOptionsComposite();
+            if (grpFetchOptions.isEnabled()) {
+                chckEnableFetchingContentFromJiraCloud
+                        .setSelection(settingStore.isEnableFetchingContentFromJiraCloud());
+                displayedJiraField = new DisplayedComboboxObject<>(settingStore.getStoredJiraCloudField());
+                updateCombobox(cbbFields, displayedJiraField);
+                new AutoCompleteComboInput(cbbFields).build();
+            }
             user = settingStore.getJiraUser();
         } catch (IOException | GeneralSecurityException e) {
             MessageDialog.openError(mainComposite.getShell(), StringConstants.ERROR, e.getMessage());
@@ -414,7 +426,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
     }
 
     private void createFetchCustomFieldGroup() {
-        Group grpFetchOptions = new Group(mainComposite, SWT.NONE);
+        grpFetchOptions = new Group(mainComposite, SWT.NONE);
         grpFetchOptions.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
         GridLayout glGrpFetchOptions = new GridLayout(1, false);
         glGrpFetchOptions.horizontalSpacing = 15;
@@ -438,7 +450,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
         helpComposite.setLayout(new GridLayout(1, false));
         new HelpCompositeForDialog(helpComposite, DOCUMENT_URL);
 
-        cbbFields = new Combo(customFieldsComposite, SWT.READ_ONLY);
+        cbbFields = new Combo(customFieldsComposite, SWT.NONE);
         cbbFields.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         btnFetchFields = new Button(customFieldsComposite, SWT.RIGHT);
@@ -501,5 +513,11 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
     private String getTrimedValue(Text text) {
         return StringUtils.defaultString(text.getText()).trim();
+    }
+
+    private void enableFetchOptionsComposite() {
+        String serverUrl = txtServerUrl.getText();
+        boolean isServerUrl = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
+        recursiveSetEnabled(grpFetchOptions, isServerUrl);
     }
 }
