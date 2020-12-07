@@ -114,7 +114,7 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                             return Status.CANCEL_STATUS;
                         }
                         String newTestCaseName = testCaseController.getAvailableTestCaseName(currentProject, folder,
-                                issue.getKey());
+                                StringUtils.defaultString(issue.getKey() + " " + issue.getFields().getSummary()));
                         monitor.setTaskName(MessageFormat.format(
                                 ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_IMPORTING_ISSUE,
                                 newTestCaseName));
