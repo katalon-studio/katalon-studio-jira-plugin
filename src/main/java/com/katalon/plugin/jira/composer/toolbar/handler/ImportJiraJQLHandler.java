@@ -54,6 +54,8 @@ import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
 import com.katalon.plugin.jira.core.setting.StoredJiraObject;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
 
+import com.katalon.plugin.jira.composer.constant.PreferenceConstants;
+
 public class ImportJiraJQLHandler implements JiraUIComponent {
     
     private boolean ableToGetCustomFieldContentFromJiraCloud;
@@ -113,8 +115,10 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                         if (monitor.isCanceled()) {
                             return Status.CANCEL_STATUS;
                         }
-                        String newTestCaseName = testCaseController.getAvailableTestCaseName(currentProject, folder,
-                                StringUtils.defaultString(issue.getKey() + " " + issue.getFields().getSummary()));
+                        String validatedTestCaseName = StringUtils
+                                .defaultString(issue.getKey() + " " + issue.getFields().getSummary());
+                        validatedTestCaseName = validateName(folder, validatedTestCaseName);
+                        String newTestCaseName = testCaseController.getAvailableTestCaseName(currentProject, folder, validatedTestCaseName);
                         monitor.setTaskName(MessageFormat.format(
                                 ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_IMPORTING_ISSUE,
                                 newTestCaseName));
@@ -169,6 +173,20 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                     }
                     monitor.done();
                 }
+            }
+
+            private String validateName(FolderEntity parentFolder, String name) throws IndexOutOfBoundsException {
+                /// Replace all unwanted characters for Test Case name
+                name = name.replaceAll("[!$%#^&*+|~=`{}\\[\\]:\";'<>?\\/]", "");
+
+                // /Project/Scripts/Parent Folder/Test Case Name/Script1602834971827.groovy
+                int taken = parentFolder.getFileLocation().length() + PreferenceConstants.FILE_SEPAPRATOR_LENGTH
+                        + PreferenceConstants.MAX_SUFFIX_LENGTH + PreferenceConstants.FILE_SEPAPRATOR_LENGTH
+                        + PreferenceConstants.GROOVY_SCRIPT_FILE_NAME_LENGTH;
+                int available = PreferenceConstants.MAX_FILE_PATH_LENGTH - taken;
+                name = name.trim();
+                name = name.length() > available ? name.substring(0, available) : name;
+                return name.trim();
             }
 
             private Optional<Field> getKatalonCommentField(JiraCredential jiraCredential) throws IOException {
