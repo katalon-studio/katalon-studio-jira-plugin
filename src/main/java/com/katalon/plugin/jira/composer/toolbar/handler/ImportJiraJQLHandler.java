@@ -38,6 +38,7 @@ import com.katalon.platform.api.ui.TestExplorerActionService;
 import com.katalon.platform.api.ui.UISynchronizeService;
 import com.katalon.plugin.jira.composer.JiraUIComponent;
 import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
+import com.katalon.plugin.jira.composer.constant.PreferenceConstants;
 import com.katalon.plugin.jira.composer.constant.StringConstants;
 import com.katalon.plugin.jira.composer.toolbar.dialog.ImportJiraJQLDialog;
 import com.katalon.plugin.jira.composer.toolbar.dialog.ImportJiraJQLDialog.ImportJiraJQLResult;
@@ -53,8 +54,6 @@ import com.katalon.plugin.jira.core.entity.JiraIssue;
 import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
 import com.katalon.plugin.jira.core.setting.StoredJiraObject;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
-
-import com.katalon.plugin.jira.composer.constant.PreferenceConstants;
 
 public class ImportJiraJQLHandler implements JiraUIComponent {
     
@@ -149,11 +148,15 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                         testCases.add(testCase);
                         monitor.worked(1);
                     }
-                    if (!ableToGetCustomFieldContentFromJiraCloud) {
-                        PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
-                            MessageDialog.openError(null, StringConstants.ERROR,
-                                    ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
-                        });
+                    if (!ableToGetCustomFieldContentFromJiraCloud && result.isLinkToBddFeatureFile()) {
+                        String serverUrl = credential.getServerUrl();
+                        boolean isJiraCloud = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
+                        if (isJiraCloud) {
+                            PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
+                                MessageDialog.openError(null, StringConstants.ERROR,
+                                        ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
+                            });
+                        }
                     }
                     TestExplorerActionService explorerActionService = PlatformUtil
                             .getUIService(TestExplorerActionService.class);

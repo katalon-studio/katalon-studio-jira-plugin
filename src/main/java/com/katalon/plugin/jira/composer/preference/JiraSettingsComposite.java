@@ -518,7 +518,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
     private void enableFetchOptionsComposite(boolean enable) {
         String serverUrl = txtServerUrl.getText();
-        boolean isServerUrl = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
-        recursiveSetEnabled(grpFetchOptions, enable && isServerUrl);
+        boolean isJiraCloud = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
+        recursiveSetEnabled(grpFetchOptions, enable && isJiraCloud);
     }
 }
