@@ -104,9 +104,8 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                     List<TestCaseEntity> testCases = new ArrayList<>();
 
                     JiraRestClientFactory clientFactory = new AsynchronousJiraRestClientFactory();
-                    restClient = clientFactory.createWithBasicHttpAuthentication(
-                            URI.create(credential.getServerUrl()), credential.getUsername(),
-                            credential.getPassword());
+                    restClient = clientFactory.createWithBasicHttpAuthentication(URI.create(credential.getServerUrl()),
+                            credential.getUsername(), credential.getPassword());
                     DateTimeZone.setProvider(new UTCProvider());
 
                     ableToGetCustomFieldContentFromJiraCloud = true;
@@ -116,11 +115,11 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                         }
                         String validatedTestCaseName = StringUtils
                                 .defaultString(issue.getKey() + " " + issue.getFields().getSummary());
-                        validatedTestCaseName = validateName(folder, validatedTestCaseName);
-                        String newTestCaseName = testCaseController.getAvailableTestCaseName(currentProject, folder, validatedTestCaseName);
+                        validatedTestCaseName = truncateName(folder, validatedTestCaseName);
+                        String newTestCaseName = testCaseController.getAvailableTestCaseName(currentProject, folder,
+                                validatedTestCaseName);
                         monitor.setTaskName(MessageFormat.format(
-                                ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_IMPORTING_ISSUE,
-                                newTestCaseName));
+                                ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_IMPORTING_ISSUE, newTestCaseName));
                         String description = getDescriptionFromIssue(issue);
                         String katalonCustomFieldValue = getComment(katalonCommentField, issue);
                         TestCaseEntity testCase = testCaseController.newTestCase(currentProject, folder,
@@ -178,11 +177,7 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                 }
             }
 
-            private String validateName(FolderEntity parentFolder, String name) throws IndexOutOfBoundsException {
-                /// Replace all unwanted characters for Test Case name
-                name = name.replaceAll("[!$%#^&*+|~=`{}\\[\\]:\";'<>?\\/]", "");
-
-                // /Project/Scripts/Parent Folder/Test Case Name/Script1602834971827.groovy
+            private String truncateName(FolderEntity parentFolder, String name) throws IndexOutOfBoundsException {
                 int taken = parentFolder.getFileLocation().length() + PreferenceConstants.FILE_SEPAPRATOR_LENGTH
                         + PreferenceConstants.MAX_SUFFIX_LENGTH + PreferenceConstants.FILE_SEPAPRATOR_LENGTH
                         + PreferenceConstants.GROOVY_SCRIPT_FILE_NAME_LENGTH;
