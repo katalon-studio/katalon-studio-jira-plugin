@@ -113,11 +113,11 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                         if (monitor.isCanceled()) {
                             return Status.CANCEL_STATUS;
                         }
-                        String validatedTestCaseName = StringUtils
+                        String testCaseName = StringUtils
                                 .defaultString(issue.getKey() + " " + issue.getFields().getSummary());
-                        validatedTestCaseName = truncateName(folder, validatedTestCaseName);
                         String newTestCaseName = testCaseController.getAvailableTestCaseName(currentProject, folder,
-                                validatedTestCaseName);
+                                testCaseName);
+                        newTestCaseName = truncateName(folder, newTestCaseName);
                         monitor.setTaskName(MessageFormat.format(
                                 ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_IMPORTING_ISSUE, newTestCaseName));
                         String description = getDescriptionFromIssue(issue);
