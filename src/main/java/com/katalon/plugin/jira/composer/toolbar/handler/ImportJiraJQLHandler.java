@@ -115,9 +115,9 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                         }
                         String testCaseName = StringUtils
                                 .defaultString(issue.getKey() + " " + issue.getFields().getSummary());
+                        testCaseName = truncateName(folder, testCaseName);
                         String newTestCaseName = testCaseController.getAvailableTestCaseName(currentProject, folder,
                                 testCaseName);
-                        newTestCaseName = truncateName(folder, newTestCaseName);
                         monitor.setTaskName(MessageFormat.format(
                                 ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_IMPORTING_ISSUE, newTestCaseName));
                         String description = getDescriptionFromIssue(issue);
