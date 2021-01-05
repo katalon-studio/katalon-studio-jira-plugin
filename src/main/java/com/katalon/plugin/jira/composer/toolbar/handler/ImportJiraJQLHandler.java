@@ -38,6 +38,7 @@ import com.katalon.platform.api.ui.TestExplorerActionService;
 import com.katalon.platform.api.ui.UISynchronizeService;
 import com.katalon.plugin.jira.composer.JiraUIComponent;
 import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
+import com.katalon.plugin.jira.composer.constant.PreferenceConstants;
 import com.katalon.plugin.jira.composer.constant.StringConstants;
 import com.katalon.plugin.jira.composer.toolbar.dialog.ImportJiraJQLDialog;
 import com.katalon.plugin.jira.composer.toolbar.dialog.ImportJiraJQLDialog.ImportJiraJQLResult;
@@ -103,9 +104,8 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                     List<TestCaseEntity> testCases = new ArrayList<>();
 
                     JiraRestClientFactory clientFactory = new AsynchronousJiraRestClientFactory();
-                    restClient = clientFactory.createWithBasicHttpAuthentication(
-                            URI.create(credential.getServerUrl()), credential.getUsername(),
-                            credential.getPassword());
+                    restClient = clientFactory.createWithBasicHttpAuthentication(URI.create(credential.getServerUrl()),
+                            credential.getUsername(), credential.getPassword());
                     DateTimeZone.setProvider(new UTCProvider());
 
                     ableToGetCustomFieldContentFromJiraCloud = true;
@@ -113,11 +113,13 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                         if (monitor.isCanceled()) {
                             return Status.CANCEL_STATUS;
                         }
+                        String testCaseName = StringUtils
+                                .defaultString(issue.getKey() + " " + issue.getFields().getSummary());
+                        testCaseName = truncateName(folder, testCaseName);
                         String newTestCaseName = testCaseController.getAvailableTestCaseName(currentProject, folder,
-                                issue.getKey());
+                                testCaseName);
                         monitor.setTaskName(MessageFormat.format(
-                                ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_IMPORTING_ISSUE,
-                                newTestCaseName));
+                                ComposerJiraIntegrationMessageConstant.JOB_SUB_TASK_IMPORTING_ISSUE, newTestCaseName));
                         String description = getDescriptionFromIssue(issue);
                         String katalonCustomFieldValue = getComment(katalonCommentField, issue);
                         TestCaseEntity testCase = testCaseController.newTestCase(currentProject, folder,
@@ -145,11 +147,15 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                         testCases.add(testCase);
                         monitor.worked(1);
                     }
-                    if (!ableToGetCustomFieldContentFromJiraCloud) {
-                        PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
-                            MessageDialog.openError(null, StringConstants.ERROR,
-                                    ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
-                        });
+                    if (!ableToGetCustomFieldContentFromJiraCloud && result.isLinkToBddFeatureFile()) {
+                        String serverUrl = credential.getServerUrl();
+                        boolean isJiraCloud = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
+                        if (isJiraCloud) {
+                            PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
+                                MessageDialog.openError(null, StringConstants.ERROR,
+                                        ComposerJiraIntegrationMessageConstant.ERROR_CUSTOM_FIELD_NOT_FOUND);
+                            });
+                        }
                     }
                     TestExplorerActionService explorerActionService = PlatformUtil
                             .getUIService(TestExplorerActionService.class);
@@ -169,6 +175,16 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                     }
                     monitor.done();
                 }
+            }
+
+            private String truncateName(FolderEntity parentFolder, String name) throws IndexOutOfBoundsException {
+                int taken = parentFolder.getFileLocation().length() + PreferenceConstants.FILE_SEPAPRATOR_LENGTH
+                        + PreferenceConstants.MAX_SUFFIX_LENGTH + PreferenceConstants.FILE_SEPAPRATOR_LENGTH
+                        + PreferenceConstants.GROOVY_SCRIPT_FILE_NAME_LENGTH;
+                int available = PreferenceConstants.MAX_FILE_PATH_LENGTH - taken;
+                String truncatedName = name.trim();
+                truncatedName = truncatedName.length() > available ? truncatedName.substring(0, available) : truncatedName;
+                return truncatedName.trim();
             }
 
             private Optional<Field> getKatalonCommentField(JiraCredential jiraCredential) throws IOException {

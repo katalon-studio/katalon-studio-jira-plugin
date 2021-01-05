@@ -283,10 +283,10 @@ public class JiraSettingsComposite implements JiraUIComponent {
             }
 
             enableFetchOptionsComposite(chckEnableIntegration.getSelection());
+            displayedJiraField = new DisplayedComboboxObject<>(settingStore.getStoredJiraCloudField());
             if (grpFetchOptions.isEnabled()) {
                 chckEnableFetchingContentFromJiraCloud
                         .setSelection(settingStore.isEnableFetchingContentFromJiraCloud());
-                displayedJiraField = new DisplayedComboboxObject<>(settingStore.getStoredJiraCloudField());
                 updateCombobox(cbbFields, displayedJiraField);
                 new AutoCompleteComboInput(cbbFields).build();
             }
@@ -518,7 +518,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
     private void enableFetchOptionsComposite(boolean enable) {
         String serverUrl = txtServerUrl.getText();
-        boolean isServerUrl = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
-        recursiveSetEnabled(grpFetchOptions, enable && isServerUrl);
+        boolean isJiraCloud = serverUrl.contains(".atlassian.net") || serverUrl.contains(".jira.com");
+        recursiveSetEnabled(grpFetchOptions, enable && isJiraCloud);
     }
 }
