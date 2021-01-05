@@ -182,9 +182,9 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                         + PreferenceConstants.MAX_SUFFIX_LENGTH + PreferenceConstants.FILE_SEPAPRATOR_LENGTH
                         + PreferenceConstants.GROOVY_SCRIPT_FILE_NAME_LENGTH;
                 int available = PreferenceConstants.MAX_FILE_PATH_LENGTH - taken;
-                name = name.trim();
-                name = name.length() > available ? name.substring(0, available) : name;
-                return name.trim();
+                String truncatedName = name.trim();
+                truncatedName = truncatedName.length() > available ? truncatedName.substring(0, available) : truncatedName;
+                return truncatedName.trim();
             }
 
             private Optional<Field> getKatalonCommentField(JiraCredential jiraCredential) throws IOException {
