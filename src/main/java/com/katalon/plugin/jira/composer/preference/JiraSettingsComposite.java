@@ -283,10 +283,10 @@ public class JiraSettingsComposite implements JiraUIComponent {
             }
 
             enableFetchOptionsComposite(chckEnableIntegration.getSelection());
+            displayedJiraField = new DisplayedComboboxObject<>(settingStore.getStoredJiraCloudField());
             if (grpFetchOptions.isEnabled()) {
                 chckEnableFetchingContentFromJiraCloud
                         .setSelection(settingStore.isEnableFetchingContentFromJiraCloud());
-                displayedJiraField = new DisplayedComboboxObject<>(settingStore.getStoredJiraCloudField());
                 updateCombobox(cbbFields, displayedJiraField);
                 new AutoCompleteComboInput(cbbFields).build();
             }
