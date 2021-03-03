@@ -7,7 +7,6 @@ import java.security.GeneralSecurityException;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.browser.ProgressEvent;
@@ -26,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.katalon.platform.api.report.TestCaseRecord;
 import com.katalon.plugin.jira.composer.JiraUIComponent;
 import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
+import com.katalon.plugin.jira.composer.util.CustomBrowser;
 import com.katalon.plugin.jira.core.JiraIntegrationException;
 import com.katalon.plugin.jira.core.issue.IssueHTMLLinkProvider;
 
@@ -38,7 +38,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
 
     private Text txtBrowserUrl;
 
-    protected Browser browser;
+    protected CustomBrowser browser;
 
     private String issueKey;
 
@@ -65,7 +65,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
         txtBrowserUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         new Label(composite, SWT.NONE);
 
-        browser = new Browser(composite, SWT.NONE);
+        browser = new CustomBrowser(composite, SWT.NONE);
         browser.setJavascriptEnabled(true);
         browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         new Label(composite, SWT.NONE);
