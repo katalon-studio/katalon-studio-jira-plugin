@@ -83,7 +83,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.7</version>
+			<version>1.15</version>
 		</dependency>
 
 		<dependency>
@@ -134,7 +134,7 @@
 					<instructions>
 						<Bundle-SymbolicName>${project.groupId}.${project.artifactId};singleton:=true</Bundle-SymbolicName>
 						<Bundle-Version>${project.version}</Bundle-Version>
-						<Import-Package></Import-Package>
+						<Import-Package/>
 						<DynamicImport-Package>*</DynamicImport-Package>
 						<_noee>true</_noee>
 						<_nouse>true</_nouse>
