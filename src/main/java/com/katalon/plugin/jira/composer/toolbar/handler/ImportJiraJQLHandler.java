@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.ws.rs.ext.RuntimeDelegate;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -53,9 +55,14 @@ import com.katalon.plugin.jira.core.entity.JiraFilter;
 import com.katalon.plugin.jira.core.entity.JiraIssue;
 import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
 import com.katalon.plugin.jira.core.setting.StoredJiraObject;
+import com.katalon.plugin.jira.core.util.ClassLoaderUtil;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
 
 public class ImportJiraJQLHandler implements JiraUIComponent {
+    
+    private static final String JAXRS_RUNTIME_DELEGATE_PROPERTY = "javax.ws.rs.ext.RuntimeDelegate";
+
+    private static final String JAXRS_DEFAULT_RUNTIME_DELEGATE = "com.sun.ws.rs.ext.RuntimeDelegateImpl";
     
     private boolean ableToGetCustomFieldContentFromJiraCloud;
 
@@ -104,6 +111,14 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                     List<TestCaseEntity> testCases = new ArrayList<>();
 
                     JiraRestClientFactory clientFactory = new AsynchronousJiraRestClientFactory();
+                    
+                    Object delegate = ClassLoaderUtil.find(JAXRS_RUNTIME_DELEGATE_PROPERTY,
+                            JAXRS_DEFAULT_RUNTIME_DELEGATE);
+
+                    if (delegate != null) {
+                        RuntimeDelegate.setInstance((RuntimeDelegate) delegate);
+                    }
+                    
                     restClient = clientFactory.createWithBasicHttpAuthentication(URI.create(credential.getServerUrl()),
                             credential.getUsername(), credential.getPassword());
                     DateTimeZone.setProvider(new UTCProvider());
@@ -162,7 +177,7 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                     explorerActionService.refreshFolder(currentProject, folder);
                     explorerActionService.selectTestCases(currentProject, testCases);
                     return Status.OK_STATUS;
-                } catch (PlatformException | JiraIntegrationException | IOException e) {
+                } catch (PlatformException | JiraIntegrationException | IOException | ClassNotFoundException e) {
                     PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
                         MessageDialog.openError(null, StringConstants.ERROR, e.getMessage());
                     });
