@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 
 import com.katalon.platform.api.controller.ReportController;
 import com.katalon.platform.api.exception.ResourceException;
@@ -32,14 +33,14 @@ public interface JiraUIComponent extends JiraComponent {
             TestSuiteRecord testSuiteRecord = PlatformUtil.getPlatformController(ReportController.class)
                     .getTestSuiteRecord(getCurrentProject(), report);
 
-            return testSuiteRecord.getTestCaseRecords().indexOf(testCaseRecord);
+            return Arrays.asList(testSuiteRecord.getTestCaseRecords()).indexOf(testCaseRecord);
         } catch (ResourceException e) {
             throw new JiraIntegrationException(e);
         }
     }
 
     default JiraIssueCollection getJiraIssueCollection(TestCaseRecord logRecord, ReportEntity reportEntity) throws JiraIntegrationException {
-        int index = getTestCaseRecordIndex(logRecord, reportEntity);
+        int index = logRecord.getRecordIndex();
         return getJiraIssueCollection(index, logRecord, reportEntity);
     }
 

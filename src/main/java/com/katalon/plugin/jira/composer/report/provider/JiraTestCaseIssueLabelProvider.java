@@ -31,7 +31,10 @@ public class JiraTestCaseIssueLabelProvider implements JiraUIComponent, CellDeco
 
     @Override
     public String getToolTip(TestCaseRecord record) {
-        return ComposerJiraIntegrationMessageConstant.TOOLTIP_CLICK_TO_MANAGE_JIRA_ISSUES;
+        if (record.isMainResult()) {
+            return ComposerJiraIntegrationMessageConstant.TOOLTIP_CLICK_TO_MANAGE_JIRA_ISSUES;
+        }
+        return null;
     }
 
     @Override
@@ -42,17 +45,26 @@ public class JiraTestCaseIssueLabelProvider implements JiraUIComponent, CellDeco
     @Override
     public Image getImage(TestCaseRecord record) {
         try {
-            return getJiraIssueCollection(record, context.getReport()).getIssues().isEmpty()
-                    ? ImageConstants.IMG_ISSUE_HOVER_OUT : ImageConstants.IMG_ISSUE_HOVER_IN;
-        } catch (JiraIntegrationException e) {
+            if (record.isMainResult()) {
+                return getJiraIssueCollection(record, context.getReport()).getIssues().isEmpty()
+                        ? ImageConstants.IMG_ISSUE_HOVER_OUT : ImageConstants.IMG_ISSUE_HOVER_IN;
+            }
+        } catch (Exception e) {
             logger.error("", e);
-            return null;
         }
+        return null;
     }
 
     @Override
     public Image getHoveredImage(TestCaseRecord record) {
-        return ImageConstants.IMG_ISSUE_HOVER_IN;
+        try {
+            if (record.isFinalResult()) {
+                return ImageConstants.IMG_ISSUE_HOVER_IN;
+            }
+        } catch (Exception e) {
+            logger.error("", e);
+        }
+        return null;
     }
 
     @Override
