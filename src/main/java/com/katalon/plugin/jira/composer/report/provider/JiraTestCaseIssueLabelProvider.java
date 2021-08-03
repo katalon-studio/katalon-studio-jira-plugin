@@ -58,7 +58,7 @@ public class JiraTestCaseIssueLabelProvider implements JiraUIComponent, CellDeco
     @Override
     public Image getHoveredImage(TestCaseRecord record) {
         try {
-            if (record.isFinalResult()) {
+            if (record.isMainResult()) {
                 return ImageConstants.IMG_ISSUE_HOVER_IN;
             }
         } catch (Exception e) {
