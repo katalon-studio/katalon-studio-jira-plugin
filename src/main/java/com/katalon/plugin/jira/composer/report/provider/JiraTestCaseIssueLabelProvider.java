@@ -71,7 +71,7 @@ public class JiraTestCaseIssueLabelProvider implements JiraUIComponent, CellDeco
     public void onMouseDownEvent(MouseEvent mouseEvent, TestCaseRecord testCaseEvent) {
         Shell activeShell = mouseEvent.display.getActiveShell();
         try {
-            int index = context.getTestSuiteRecord().getTestCaseRecords().indexOf(testCaseEvent);
+            int index = testCaseEvent.getRecordIndex();
             JiraLinkedIssuesDialog dialog = new JiraLinkedIssuesDialog(activeShell,
                     getJiraIssueCollection(index, testCaseEvent, context.getReport()), context.getTestSuiteRecord(),
                     testCaseEvent);
