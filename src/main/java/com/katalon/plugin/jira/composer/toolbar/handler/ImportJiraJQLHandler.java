@@ -57,7 +57,6 @@ import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
 import com.katalon.plugin.jira.core.setting.StoredJiraObject;
 import com.katalon.plugin.jira.core.util.ClassLoaderUtil;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
-import com.sun.ws.rs.ext.RuntimeDelegateImpl;
 
 public class ImportJiraJQLHandler implements JiraUIComponent {
     
