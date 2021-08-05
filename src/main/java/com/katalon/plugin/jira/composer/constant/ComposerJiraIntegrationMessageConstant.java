@@ -4,6 +4,7 @@ import org.eclipse.osgi.util.NLS;
 
 public class ComposerJiraIntegrationMessageConstant extends NLS {
     private static final String MESSAGE_FILE_NAME = "ComposerJiraIntegrationMessage";
+    
     static {
         // initialize resource bundle
         NLS.initializeMessages("com.katalon.plugin.jira.composer.constant." + MESSAGE_FILE_NAME, ComposerJiraIntegrationMessageConstant.class);
@@ -148,4 +149,6 @@ public class ComposerJiraIntegrationMessageConstant extends NLS {
     public static String ERROR_UNABLE_TO_SAVE_JIRA_SETTING;
 
     public static String ERROR_CUSTOM_FIELD_NOT_FOUND;
+
+    public static String ERROR_GET_JIRA_ISSUE_WITH_WRONG_TEST_CASE_INDEX;
 }
