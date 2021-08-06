@@ -69,6 +69,9 @@ public class JiraTestCaseIssueLabelProvider implements JiraUIComponent, CellDeco
 
     @Override
     public void onMouseDownEvent(MouseEvent mouseEvent, TestCaseRecord testCaseEvent) {
+        if (!testCaseEvent.isMainResult()) {
+            return;
+        }
         Shell activeShell = mouseEvent.display.getActiveShell();
         try {
             int index = testCaseEvent.getRecordIndex();
@@ -89,6 +92,6 @@ public class JiraTestCaseIssueLabelProvider implements JiraUIComponent, CellDeco
 
     @Override
     public boolean showCursorOnHover(TestCaseRecord record) {
-        return true;
+        return record.isMainResult();
     }
 }
