@@ -33,6 +33,8 @@ public class StringConstants {
 
     public static final String PREF_AUTH_USER = "auth.user";
 
+    public static final String PREF_AUTH_ENCRYPTION_MIGRATED = "auth.encrytionMigrated";
+
     public static final String PREF_AUTH_ENCRYPTION_ENABLED = "auth.encryptionEnabled";
 
     public static final String PREF_INTEGRATION_ENABLED = "integration.enabled";
