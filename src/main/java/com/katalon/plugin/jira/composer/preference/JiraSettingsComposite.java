@@ -33,6 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.atlassian.jira.rest.client.api.domain.User;
+import com.katalon.platform.api.exception.CryptoException;
+import com.katalon.platform.api.exception.InvalidDataTypeFormatException;
 import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.plugin.jira.composer.JiraUIComponent;
 import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
@@ -291,7 +293,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 new AutoCompleteComboInput(cbbFields).build();
             }
             user = settingStore.getJiraUser();
-        } catch (IOException | GeneralSecurityException e) {
+        } catch (IOException | GeneralSecurityException | InvalidDataTypeFormatException | CryptoException e) {
             MessageDialog.openError(mainComposite.getShell(), StringConstants.ERROR, e.getMessage());
         }
     }
@@ -459,6 +461,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
             settingStore.enableIntegration(chckEnableIntegration.getSelection());
 
             boolean encryptionEnable = chckEncrypt.getSelection();
+            settingStore.saveEncryptionMigrated(true);
             settingStore.saveServerUrl(getTrimedValue(txtServerUrl), encryptionEnable);
             settingStore.saveUsername(getTrimedValue(txtUsername), encryptionEnable);
             settingStore.savePassword(txtPassword.getText(), encryptionEnable);
@@ -493,7 +496,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
             settingStore.saveStore();
             return true;
-        } catch (IOException | GeneralSecurityException | ResourceException e) {
+        } catch (IOException | GeneralSecurityException | ResourceException | CryptoException e) {
             logger.error(ComposerJiraIntegrationMessageConstant.ERROR_UNABLE_TO_SAVE_JIRA_SETTING, e);
             MessageDialog.openError(mainComposite.getShell(), StringConstants.ERROR, e.getMessage());
             return false;
