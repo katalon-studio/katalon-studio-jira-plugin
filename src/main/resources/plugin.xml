@@ -1,5 +1,13 @@
 <plugin>
 	<extension
+	        point="com.katalon.platform.extensions">
+	    <point
+	          id="com.mycompany.plugin.myFirstExtensionId"
+	          extensionPointId="com.katalon.platform.api.extension.pluginActivationListener"
+	          implementationClass="com.katalon.plugin.jira.JiraPluginActivationListener">
+	    </point>
+	</extension>
+	<extension
             point="com.katalon.platform.extensions">
         <point
                 id="com.katalon.plugin.jira.JiraEventListenerInitializer"
