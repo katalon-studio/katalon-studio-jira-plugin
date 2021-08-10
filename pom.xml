@@ -12,7 +12,7 @@
 
 	<groupId>com.katalon</groupId>
 	<artifactId>katalon-studio-jira-plugin</artifactId>
-	<version>1.0.14</version>
+	<version>1.0.17</version>
 
 	<packaging>bundle</packaging>
 
@@ -30,12 +30,21 @@
 	</repositories>
 
 	<dependencies>
-
 		<!-- Katalon Platform dependencies -->
 		<dependency>
 			<groupId>com.katalon</groupId>
 			<artifactId>com.katalon.platform</artifactId>
 			<version>1.0.8</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.annotation</groupId>
+		    		<artifactId>javax.annotation-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.platform</groupId>
+		    		<artifactId>org.eclipse.equinox.common</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- JIRA Plugin dependencies -->
@@ -103,6 +112,21 @@
 			<artifactId>javax.inject</artifactId>
 			<version>1</version>
 		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
+		<dependency>
+		    <groupId>javax.annotation</groupId>
+		    <artifactId>javax.annotation-api</artifactId>
+		    <version>1.3.2</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.eclipse.platform/org.eclipse.equinox.common -->
+		<dependency>
+		    <groupId>org.eclipse.platform</groupId>
+		    <artifactId>org.eclipse.equinox.common</artifactId>
+		    <version>3.12.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
