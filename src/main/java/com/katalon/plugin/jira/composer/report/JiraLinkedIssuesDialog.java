@@ -118,6 +118,9 @@ public class JiraLinkedIssuesDialog extends AbstractDialog implements JiraUIComp
         createToolBar(composite);
 
         createTableCompiste(composite);
+        
+        tableViewer.getTable().setFocus();
+        
         return composite;
     }
 
