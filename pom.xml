@@ -12,7 +12,7 @@
 
 	<groupId>com.katalon</groupId>
 	<artifactId>katalon-studio-jira-plugin</artifactId>
-	<version>1.0.17</version>
+	<version>1.0.21</version>
 
 	<packaging>bundle</packaging>
 

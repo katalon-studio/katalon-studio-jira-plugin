@@ -5,6 +5,7 @@ import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_AUTH_PA
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_AUTH_SERVER_URL;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_AUTH_USER;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_AUTH_USERNAME;
+import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_AUTH_ENCRYPTION_MIGRATED;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_INTEGRATION_ENABLED;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_ATTACH_LOG;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_ATTACH_SCREENSHOT;
@@ -24,6 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.atlassian.jira.rest.client.api.domain.User;
 import com.google.gson.reflect.TypeToken;
+import com.katalon.platform.api.exception.CryptoException;
+import com.katalon.platform.api.exception.InvalidDataTypeFormatException;
 import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.preference.PluginPreference;
 import com.katalon.plugin.jira.core.JiraAPIURL;
@@ -57,12 +60,21 @@ public class JiraIntegrationSettingStore {
         delegate.setString(PREF_AUTH_USERNAME, username);
     }
 
-    public String getPassword(boolean encryptionEnabled) throws IOException, GeneralSecurityException {
-        return delegate.getString(PREF_AUTH_PASSWORD, StringUtils.EMPTY);
+    public String getPassword(boolean encryptionEnabled)
+            throws IOException, GeneralSecurityException, InvalidDataTypeFormatException, CryptoException {
+        boolean shouldDecrypted = isEncryptionMigrated() && encryptionEnabled;
+        String decryptedString = delegate.getString(PREF_AUTH_PASSWORD, StringUtils.EMPTY, shouldDecrypted);
+        if (shouldDecrypted) {
+            if (decryptedString.startsWith("\"") && decryptedString.endsWith("\"")) {
+                return decryptedString.substring(1, decryptedString.length() - 1);
+            }
+        }
+        return decryptedString;
     }
 
-    public void savePassword(String rawPassword, boolean encryptEnabled) throws IOException, GeneralSecurityException {
-        delegate.setString(PREF_AUTH_PASSWORD, rawPassword);
+    public void savePassword(String rawPassword, boolean encryptEnabled)
+            throws IOException, GeneralSecurityException, CryptoException {
+        delegate.setString(PREF_AUTH_PASSWORD, rawPassword, encryptEnabled);
     }
 
     public boolean isEncryptionEnabled() throws IOException {
@@ -120,6 +132,14 @@ public class JiraIntegrationSettingStore {
 
     public void enableAttachLog(boolean enabled) throws IOException {
         delegate.setBoolean(PREF_SUBMIT_ATTACH_LOG, enabled);
+    }
+
+    public boolean isEncryptionMigrated() throws IOException {
+        return delegate.getBoolean(PREF_AUTH_ENCRYPTION_MIGRATED, false);
+    }
+
+    public void saveEncryptionMigrated(boolean encryptionMigrated) throws IOException {
+        delegate.setBoolean(PREF_AUTH_ENCRYPTION_MIGRATED, encryptionMigrated);
     }
 
     public StoredJiraObject<JiraProject> getStoredJiraProject() throws IOException {
@@ -186,7 +206,8 @@ public class JiraIntegrationSettingStore {
         delegate.setBoolean(PREF_SUBMIT_FETCH_JIRA_CLOUD_CONTENT, enable);
     }
 
-    public JiraCredential getJiraCredential() throws IOException, GeneralSecurityException {
+    public JiraCredential getJiraCredential()
+            throws IOException, GeneralSecurityException, InvalidDataTypeFormatException, CryptoException {
         JiraCredential credential = new JiraCredential();
 
         boolean authenticationEncrypted = isEncryptionEnabled();

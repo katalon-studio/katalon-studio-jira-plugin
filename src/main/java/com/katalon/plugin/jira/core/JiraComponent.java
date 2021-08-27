@@ -6,6 +6,8 @@ import java.security.GeneralSecurityException;
 
 import org.apache.commons.io.FileUtils;
 
+import com.katalon.platform.api.exception.CryptoException;
+import com.katalon.platform.api.exception.InvalidDataTypeFormatException;
 import com.katalon.platform.api.exception.ResourceException;
 import com.katalon.platform.api.model.ProjectEntity;
 import com.katalon.platform.api.model.ReportEntity;
@@ -49,7 +51,7 @@ public interface JiraComponent {
     default JiraCredential getCredential() throws IOException, JiraIntegrationException {
         try {
             return getSettingStore().getJiraCredential();
-        } catch (GeneralSecurityException e) {
+        } catch (GeneralSecurityException | InvalidDataTypeFormatException | CryptoException e) {
             throw new JiraIntegrationException(e);
         }
     }
