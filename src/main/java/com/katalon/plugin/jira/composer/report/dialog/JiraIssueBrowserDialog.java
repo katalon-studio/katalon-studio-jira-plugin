@@ -113,6 +113,9 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
                     }
 
                     if (url.startsWith(htmlLinkProvider.getIssueUrlPrefix())) {
+                        if (isNotAbleToCreateSubIssue()) {
+                            return;
+                        }
                         if (isIssueURLAuthorized()) {
                             ready = true;
                             trigger();
@@ -156,6 +159,11 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
         return object instanceof Boolean && ((Boolean) object).booleanValue();
     }
 
+    private boolean isNotAbleToCreateSubIssue() {
+        Object object = browser.evaluate(
+                "return (document.getElementById('issuetype')!=null && document.getElementById('summary') == null);");
+        return object instanceof Boolean && ((Boolean) object).booleanValue();
+    }
     private boolean isDashboardRequireLogin() {
         Object object = browser.evaluate("return document.getElementById('username') !== null;");
         return object instanceof Boolean && ((Boolean) object).booleanValue();
