@@ -7,6 +7,7 @@ import java.security.GeneralSecurityException;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.browser.ProgressEvent;
@@ -38,7 +39,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
 
     private Text txtBrowserUrl;
 
-    protected CustomBrowser browser;
+    protected Browser browser;
 
     private String issueKey;
 
@@ -65,7 +66,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
         txtBrowserUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         new Label(composite, SWT.NONE);
 
-        browser = new CustomBrowser(composite, SWT.NONE);
+        browser = new Browser(composite, SWT.MOZILLA);
         browser.setJavascriptEnabled(true);
         browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         new Label(composite, SWT.NONE);
