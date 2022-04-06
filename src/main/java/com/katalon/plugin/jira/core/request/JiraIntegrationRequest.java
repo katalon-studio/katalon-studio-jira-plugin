@@ -8,8 +8,6 @@ import java.lang.reflect.Array;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.text.MessageFormat;
 
 import javax.net.ssl.SSLContext;
@@ -25,7 +23,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -54,7 +52,7 @@ public class JiraIntegrationRequest {
         if (StringUtils.isEmpty(credential.getServerUrl())) {
             throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_WARN_CONFIGURE_JIRA_SETTINGS);
         }
-        try (CloseableHttpClient client = HttpClientBuilder.create().setSSLContext(getTrustedSSLContext()).build()) {
+        try (CloseableHttpClient client = HttpClientBuilder.create().setSSLContext(getTrustedSSLContext()).setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE).build()) {
             HttpGet request = new HttpGet(url);
 
             if (shouldAddAuthentication) {
@@ -79,7 +77,7 @@ public class JiraIntegrationRequest {
         if (StringUtils.isEmpty(credential.getServerUrl())) {
             throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_WARN_CONFIGURE_JIRA_SETTINGS);
         }
-        try (CloseableHttpClient client = HttpClientBuilder.create().setSSLContext(getTrustedSSLContext()).build()) {
+        try (CloseableHttpClient client = HttpClientBuilder.create().setSSLContext(getTrustedSSLContext()).setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE).build()) {
             HttpGet request = new HttpGet(url);
 
             addAuthenticationHeader(credential, request);
@@ -170,7 +168,7 @@ public class JiraIntegrationRequest {
     }
 
     protected CloseableHttpClient getClientBuilder() throws GeneralSecurityException {
-        return HttpClientBuilder.create().setSSLContext(getTrustedSSLContext()).build();
+        return HttpClientBuilder.create().setSSLContext(getTrustedSSLContext()).setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE).build();
     }
 
     protected void addAuthenticationHeader(JiraCredential credential, HttpRequestBase request) {
@@ -193,12 +191,9 @@ public class JiraIntegrationRequest {
     }
 
     protected SSLContext getTrustedSSLContext() throws GeneralSecurityException {
-        SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-            public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
-                return true;
-            }
-        }).build();
-        return sslContext;
+        return new SSLContextBuilder()
+                .loadTrustMaterial(null, (x509CertChain, authType) -> true)
+                .build();
     }
 
     protected String getResultFromRequest(CloseableHttpClient client, HttpRequestBase request)

@@ -9,7 +9,11 @@
 		<artifactId>com.katalon.platform.parent</artifactId>
 		<version>1.0.19</version>
 	</parent>
-
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>    
+		<java.version>1.8</java.version>
+	</properties>
 	<groupId>com.katalon</groupId>
 	<artifactId>katalon-studio-jira-plugin</artifactId>
 	<version>1.0.22</version>
@@ -108,10 +112,38 @@
 			<artifactId>jsr311-api</artifactId>
 			<version>1.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.eclipse.platform</groupId>
+			<artifactId>org.eclipse.core.jobs</artifactId>
+			<version>3.11.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<!-- Build an executable JAR -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>Main</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
