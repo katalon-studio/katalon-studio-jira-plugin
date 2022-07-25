@@ -51,12 +51,11 @@ public class CustomBrowser {
 
     static {
         if (isWindows) {
-            chromiumBundle = Platform.getBundle("org.eclipse.swt.chromium");
+            chromiumBundle = Platform.getBundle("com.equo.swt.chromium");
             try {
-                chromiumClass = chromiumBundle.loadClass("org.eclipse.swt.chromium.Browser");
+                chromiumClass = chromiumBundle.loadClass("com.equo.swt.chromium.Browser");
                 constructor = chromiumClass.getConstructor(new Class<?>[] { Composite.class, int.class });
-
-                setUrl = chromiumClass.getMethod("setUrl", new Class[] { String.class });
+                setUrl = chromiumClass.getMethod("setUrl", new Class[] { String.class, String.class, String[].class });
                 setJavascriptEnabled = chromiumClass.getMethod("setJavascriptEnabled", new Class[] { boolean.class });
                 evaluate = chromiumClass.getMethod("evaluate", new Class[] { String.class });
                 addProgressListener = chromiumClass.getMethod("addProgressListener",
@@ -87,11 +86,23 @@ public class CustomBrowser {
         }
     }
 
+    public void setUrl(String url, String postData, String[] header) {
+        if (isWindows) {
+            try {
+                setUrl.invoke(chromiumBrowser, url, postData, header);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                logger.error("", e);
+            }
+        } else {
+            defaultBrowser.setUrl(url, postData, header);
+        }
+    }
+    
     public void setUrl(String url) {
         if (isWindows) {
             try {
-                setUrl.invoke(chromiumBrowser, url);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                setUrl(url, null, null);
+            } catch (IllegalArgumentException e) {
                 logger.error("", e);
             }
         } else {
