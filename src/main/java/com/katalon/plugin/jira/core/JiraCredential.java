@@ -7,6 +7,8 @@ public class JiraCredential {
 
     private String password;
 
+    private String bearerToken;
+
     public String getServerUrl() {
         return serverUrl;
     }
@@ -29,5 +31,13 @@ public class JiraCredential {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getBearerToken() {
+        return bearerToken;
+    }
+
+    public void setBearerToken(String bearerToken) {
+        this.bearerToken = bearerToken;
     }
 }

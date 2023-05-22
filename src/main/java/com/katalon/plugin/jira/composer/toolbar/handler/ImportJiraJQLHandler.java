@@ -12,6 +12,7 @@ import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.apache.http.HttpHeaders;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -21,6 +22,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.joda.time.DateTimeZone;
 import org.joda.time.tz.UTCProvider;
 
+import com.atlassian.httpclient.api.Request.Builder;
+import com.atlassian.jira.rest.client.api.AuthenticationHandler;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.JiraRestClientFactory;
 import com.atlassian.jira.rest.client.api.domain.Field;
@@ -104,8 +107,22 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                     List<TestCaseEntity> testCases = new ArrayList<>();
 
                     JiraRestClientFactory clientFactory = new AsynchronousJiraRestClientFactory();
-                    restClient = clientFactory.createWithBasicHttpAuthentication(URI.create(credential.getServerUrl()),
-                            credential.getUsername(), credential.getPassword());
+                    if (credential.getBearerToken().isEmpty()) {
+                        restClient = clientFactory.createWithBasicHttpAuthentication(
+                                URI.create(credential.getServerUrl()), credential.getUsername(),
+                                credential.getPassword());
+                    } else {
+                        clientFactory.createWithAuthenticationHandler(URI.create(credential.getServerUrl()),
+                                new AuthenticationHandler() {
+
+                                    @Override
+                                    public void configure(Builder builder) {
+                                        builder.setHeader(HttpHeaders.AUTHORIZATION,
+                                                "Bearer " + credential.getBearerToken());
+
+                                    }
+                                });
+                    }
                     DateTimeZone.setProvider(new UTCProvider());
 
                     ableToGetCustomFieldContentFromJiraCloud = true;

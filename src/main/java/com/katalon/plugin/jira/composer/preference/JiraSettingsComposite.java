@@ -65,7 +65,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
     private Composite mainComposite;
 
-    private Text txtServerUrl, txtUsername, txtPassword;
+    private Text txtServerUrl, txtUsername, txtPassword, txtBearerToken;
 
     private Button chckUseTestCaseNameAsSumarry, chckAttachScreenshot, chckAttachLog;
 
@@ -222,6 +222,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
 
     private void maskPasswordField() {
         txtPassword.setEchoChar("\u2022".charAt(0));
+        txtBearerToken.setEchoChar("\u2022".charAt(0));
     }
 
     public void setShell(Shell shell) {
@@ -253,6 +254,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
             txtServerUrl.setText(settingStore.getServerUrl(encryptionEnabled));
             txtUsername.setText(settingStore.getUsername(encryptionEnabled));
             txtPassword.setText(settingStore.getPassword(encryptionEnabled));
+            txtBearerToken.setText(settingStore.getBearerToken(encryptionEnabled));
             chckEncrypt.setSelection(encryptionEnabled);
             maskPasswordField();
 
@@ -369,6 +371,12 @@ public class JiraSettingsComposite implements JiraUIComponent {
         txtPassword = new Text(passwordComposite, SWT.BORDER);
         txtPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
+        Label lblBearerToken = new Label(grpAuthentication, SWT.NONE);
+        lblBearerToken.setText(ComposerJiraIntegrationMessageConstant.PREF_LBL_BEARER_TOKEN);
+        
+        txtBearerToken = new Text(grpAuthentication, SWT.BORDER);
+        txtBearerToken.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+
         chckEncrypt = new Button(grpAuthentication, SWT.CHECK);
         chckEncrypt.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true, 2, 1));
         chckEncrypt.setText(ComposerJiraIntegrationMessageConstant.PREF_CHCK_ENCRYPT_PASSWORD);
@@ -465,6 +473,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
             settingStore.saveServerUrl(getTrimedValue(txtServerUrl), encryptionEnable);
             settingStore.saveUsername(getTrimedValue(txtUsername), encryptionEnable);
             settingStore.savePassword(txtPassword.getText(), encryptionEnable);
+            settingStore.saveBearerToken(txtBearerToken.getText(), encryptionEnable);
             settingStore.saveJiraUser(user);
             settingStore.enableEncryption(encryptionEnable);
 
@@ -508,6 +517,7 @@ public class JiraSettingsComposite implements JiraUIComponent {
         credential.setServerUrl(getTrimedValue(txtServerUrl));
         credential.setUsername(getTrimedValue(txtUsername));
         credential.setPassword(txtPassword.getText());
+        credential.setBearerToken(txtBearerToken.getText());
         return credential;
     }
 

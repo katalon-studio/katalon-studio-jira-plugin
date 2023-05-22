@@ -16,7 +16,7 @@ import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_USE_TEST_CASE_NAME_AS_SUMMARY;
 import static com.katalon.plugin.jira.core.constant.StringConstants.MIGRATE_PROJECT_SCOPE;
 import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_SUBMIT_FETCH_JIRA_CLOUD_CONTENT;
-
+import static com.katalon.plugin.jira.core.constant.StringConstants.PREF_AUTH_BEARER_TOKEN;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.security.GeneralSecurityException;
@@ -72,9 +72,25 @@ public class JiraIntegrationSettingStore {
         return decryptedString;
     }
 
+    public String getBearerToken(boolean encryptionEnabled)
+            throws IOException, GeneralSecurityException, InvalidDataTypeFormatException, CryptoException {
+        boolean shouldDecrypted = isEncryptionMigrated() && encryptionEnabled;
+        String decryptedString = delegate.getString(PREF_AUTH_BEARER_TOKEN, StringUtils.EMPTY, shouldDecrypted);
+        if (shouldDecrypted) {
+            if (decryptedString.startsWith("\"") && decryptedString.endsWith("\"")) {
+                return decryptedString.substring(1, decryptedString.length() - 1);
+            }
+        }
+        return decryptedString;
+    }
+
     public void savePassword(String rawPassword, boolean encryptEnabled)
             throws IOException, GeneralSecurityException, CryptoException {
         delegate.setString(PREF_AUTH_PASSWORD, rawPassword, encryptEnabled);
+    }
+
+    public void saveBearerToken(String rawBearerToken, boolean encryptEnabled) throws CryptoException {
+        delegate.setString(PREF_AUTH_BEARER_TOKEN, rawBearerToken, encryptEnabled);
     }
 
     public boolean isEncryptionEnabled() throws IOException {

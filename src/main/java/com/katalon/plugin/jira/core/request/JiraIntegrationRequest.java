@@ -174,9 +174,13 @@ public class JiraIntegrationRequest {
     }
 
     protected void addAuthenticationHeader(JiraCredential credential, HttpRequestBase request) {
-        String authEncoded = new Base64()
-                .encodeAsString((credential.getUsername() + ":" + credential.getPassword()).getBytes());
-        request.setHeader(HttpHeaders.AUTHORIZATION, "Basic " + authEncoded);
+        if (credential.getBearerToken().isEmpty()) {
+            String authEncoded = new Base64()
+                    .encodeAsString((credential.getUsername() + ":" + credential.getPassword()).getBytes());
+            request.setHeader(HttpHeaders.AUTHORIZATION, "Basic " + authEncoded);
+        } else {
+            request.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + credential.getBearerToken());
+        }
         request.setHeader("X-Atlassian-Token", "no-check");
     }
 

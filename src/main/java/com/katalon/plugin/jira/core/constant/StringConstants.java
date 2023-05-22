@@ -29,6 +29,8 @@ public class StringConstants {
 
     public static final String PREF_AUTH_PASSWORD = "auth.password";
 
+    public static final String PREF_AUTH_BEARER_TOKEN = "auth.bearerToken";
+
     public static final String PREF_AUTH_USERNAME = "auth.username";
 
     public static final String PREF_AUTH_USER = "auth.user";
