@@ -108,6 +108,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
                                 && !url.equals(htmlLinkProvider.getDashboardHTMLLink())
                                 && !url.startsWith(htmlLinkProvider.getIssueUrlPrefix())) {
                             browser.setUrl(htmlLinkProvider.getHTMLLink());
+                            return;
                         }
                     }
 
