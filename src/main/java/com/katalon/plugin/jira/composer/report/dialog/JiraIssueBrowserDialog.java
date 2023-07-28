@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
@@ -65,7 +66,11 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
         txtBrowserUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         new Label(composite, SWT.NONE);
 
-        browser = new Browser(composite, SWT.EDGE);
+        if (SystemUtils.IS_OS_WINDOWS) {
+            browser = new Browser(composite, SWT.EDGE);
+        } else {
+            browser = new Browser(parent, SWT.NONE);
+        }
         browser.setJavascriptEnabled(true);
         browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         new Label(composite, SWT.NONE);
