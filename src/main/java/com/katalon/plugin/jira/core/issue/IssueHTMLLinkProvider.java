@@ -7,6 +7,8 @@ import java.security.GeneralSecurityException;
 public interface IssueHTMLLinkProvider {
 
     String getSecureDashboardHTMLLink() throws IOException, URISyntaxException, GeneralSecurityException;
+    
+    String getDefaultDashboardHTMLLink() throws IOException, URISyntaxException, GeneralSecurityException;
 
     String getLoginHTMLLink() throws IOException, URISyntaxException, GeneralSecurityException;
 
