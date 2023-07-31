@@ -58,6 +58,8 @@ public class StringConstants {
     public static final String HREF_CREATE_SUB_TASK_ISSUE_PREFIX = "/secure/CreateSubTaskIssue";
 
     public static final String HREF_CREATE_SUB_TASK_ISSUE = HREF_CREATE_SUB_TASK_ISSUE_PREFIX + "!default.jspa";
+    
+    public static final String HREF_DEFAULT_DASHBOARD = "/jira/dashboards/last-visited";
 
     public static final String KATALON_CUSTOM_FIELD_ID = "com.katalon.katalon-jira-plugin:com.katalon.jiraplugin.gherkin";
 }

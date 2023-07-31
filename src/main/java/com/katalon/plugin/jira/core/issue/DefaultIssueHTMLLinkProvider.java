@@ -58,4 +58,9 @@ public abstract class DefaultIssueHTMLLinkProvider implements IssueHTMLLinkProvi
     public String getSecureDashboardHTMLLink() throws IOException, URISyntaxException, GeneralSecurityException {
         return settingStore.getServerUrl(settingStore.isEncryptionEnabled()) + StringConstants.HREF_SECURE;
     }
+    
+    @Override
+    public String getDefaultDashboardHTMLLink() throws IOException, URISyntaxException, GeneralSecurityException {
+        return settingStore.getServerUrl(settingStore.isEncryptionEnabled()) + StringConstants.HREF_DEFAULT_DASHBOARD;
+    }
 }
