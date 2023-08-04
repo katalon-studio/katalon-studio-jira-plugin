@@ -69,7 +69,7 @@ public class JiraIssueBrowserDialog extends Dialog implements JiraUIComponent {
         if (SystemUtils.IS_OS_WINDOWS) {
             browser = new Browser(composite, SWT.EDGE);
         } else {
-            browser = new Browser(parent, SWT.NONE);
+            browser = new Browser(composite, SWT.NONE);
         }
         browser.setJavascriptEnabled(true);
         browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
