@@ -12,7 +12,7 @@
 
 	<groupId>com.katalon</groupId>
 	<artifactId>katalon-studio-jira-plugin</artifactId>
-	<version>1.0.24</version>
+	<version>1.0.25</version>
 
 	<packaging>bundle</packaging>
 
@@ -48,7 +48,7 @@
 		<dependency>
 			<groupId>com.atlassian.jira</groupId>
 			<artifactId>jira-rest-java-client-core</artifactId>
-			<version>5.1.6</version>
+			<version>5.2.6</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -123,6 +123,11 @@
             <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
             <version>3.123.0</version>
         </dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-server</artifactId>
+			<version>2.40</version>
+		</dependency>
 	</dependencies>
 
 	<build>
