@@ -169,6 +169,9 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         lblDisplaySummary.setText(StringUtils.defaultString(fields.getSummary()));
         lblDisplayStatus.setText(StringUtils.defaultString(fields.getStatus().getName()));
         lblDisplayDiscription.setText(StringUtils.defaultString(fields.getDescription()));
+
+        Composite descriptionParent = lblDisplayDiscription.getParent();
+        descriptionParent.layout();
     }
 
     public boolean hasDocumentation() {
