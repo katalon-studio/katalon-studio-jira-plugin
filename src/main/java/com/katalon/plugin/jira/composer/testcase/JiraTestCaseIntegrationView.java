@@ -217,7 +217,6 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
 
     private void redrawJiraIssueKeyColumn() {
         if (lblDisplayKey == null || lblDisplayKey.isDisposed()) return;
-
         Composite parent = lblDisplayKey.getParent();
         if (!linkedJiraIssue.isPresent()) {
             parent = btnLinkJiraIssue.getParent();
