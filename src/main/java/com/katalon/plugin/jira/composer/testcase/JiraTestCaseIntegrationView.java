@@ -119,6 +119,7 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
     }
 
     private void setControlVisibility(Control control, boolean visible) {
+        if (control == null || control.isDisposed()) return;
         control.setVisible(visible);
         Object layoutDataRaw = control.getLayoutData();
         if (Objects.nonNull(layoutDataRaw) && layoutDataRaw instanceof GridData) {
@@ -160,6 +161,7 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
     }
 
     private void populateJiraFieldValues() {
+        if (container == null || container.isDisposed()) return;
         ControlUtil.recursiveSetEnabled(container, linkedJiraIssue.isPresent());
 
         JiraIssue issue = linkedJiraIssue.get();
@@ -214,6 +216,8 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
     }
 
     private void redrawJiraIssueKeyColumn() {
+        if (lblDisplayKey == null || lblDisplayKey.isDisposed()) return;
+
         Composite parent = lblDisplayKey.getParent();
         if (!linkedJiraIssue.isPresent()) {
             parent = btnLinkJiraIssue.getParent();
