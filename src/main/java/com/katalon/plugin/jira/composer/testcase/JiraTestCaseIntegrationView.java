@@ -164,16 +164,18 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         if (container == null || container.isDisposed()) return;
         ControlUtil.recursiveSetEnabled(container, linkedJiraIssue.isPresent());
 
-        JiraIssue issue = linkedJiraIssue.get();
-        lblDisplayKey.setText("<a>" + issue.getKey() + "</a>");
+        if (linkedJiraIssue.isPresent()) {
+            JiraIssue issue = linkedJiraIssue.get();
+            lblDisplayKey.setText("<a>" + issue.getKey() + "</a>");
 
-        Issue fields = issue.getFields();
-        lblDisplaySummary.setText(StringUtils.defaultString(fields.getSummary()));
-        lblDisplayStatus.setText(StringUtils.defaultString(fields.getStatus().getName()));
-        lblDisplayDiscription.setText(StringUtils.defaultString(fields.getDescription()));
+            Issue fields = issue.getFields();
+            lblDisplaySummary.setText(StringUtils.defaultString(fields.getSummary()));
+            lblDisplayStatus.setText(StringUtils.defaultString(fields.getStatus().getName()));
+            lblDisplayDiscription.setText(StringUtils.defaultString(fields.getDescription()));
 
-        Composite descriptionParent = lblDisplayDiscription.getParent();
-        descriptionParent.layout();
+            Composite descriptionParent = lblDisplayDiscription.getParent();
+            descriptionParent.layout();
+        }
     }
 
     public boolean hasDocumentation() {
