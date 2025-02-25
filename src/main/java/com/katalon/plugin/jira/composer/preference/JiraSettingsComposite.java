@@ -11,7 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.katalon.plugin.jira.core.JiraIntegrationException;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.core.internal.runtime.Activator;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -53,6 +58,10 @@ public class JiraSettingsComposite implements JiraUIComponent {
     private static final String DOCUMENT_URL = ComposerJiraIntegrationMessageConstant.DOCUMENT_URL_JIRA_CLOUD_FETCH_CONTENT;
 
     private static final String API_TOKEN_DOCUMENT_URL = "https://confluence.atlassian.com/cloud/api-tokens-938839638.html";
+
+    private static final String ERROR_ADMIN_PERMISSION = "The current user does not have administrator permissions";
+
+    private static final String ERROR_ADMIN_PROMPT = "Something went wrong. Please double-check by logging in with this credential from your browser first, then return to Katalon Studio to continue your settings.";
 
     private Logger logger = LoggerFactory.getLogger(JiraSettingsComposite.class);
 
@@ -111,8 +120,14 @@ public class JiraSettingsComposite implements JiraUIComponent {
                 JiraConnectionResult result = job.run();
                 if (result.getError() != null) {
                     enableFetchOptionsComposite(false);
-                    logger.error("Unable to connect to JIRA server", result.getError());
-                    MessageDialog.openError(shell, StringConstants.ERROR, result.getError().getMessage());
+                    JiraIntegrationException error = result.getError();
+                    logger.error("Unable to connect to JIRA server", error);
+                    if (error.getMessage().contains(ERROR_ADMIN_PERMISSION)) {
+                        Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, ERROR_ADMIN_PERMISSION, error);
+                        ErrorDialog.openError(shell, StringConstants.ERROR, ERROR_ADMIN_PROMPT, status);
+                    } else {
+                        MessageDialog.openError(shell, StringConstants.ERROR, error.getMessage());
+                    }
                     return;
                 }
 
