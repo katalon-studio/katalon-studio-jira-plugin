@@ -24,6 +24,8 @@ import org.eclipse.swt.widgets.*;
 import org.slf4j.LoggerFactory;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+
+import java.util.InvalidPropertiesFormatException;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -92,7 +94,7 @@ public class JiraIssueLinkDialog extends TitleAreaDialog implements JiraUICompon
         txtJiraIssueKey = new Text(jiraIssueKeyContainer, SWT.BORDER);
         txtJiraIssueKey.setMessage(ComposerJiraIntegrationMessageConstant.TXT_JIRA_ISSUE_KEY_PLACEHOLDER);
         txtJiraIssueKey.setLayoutData(
-                GridDataFactory.fillDefaults().hint(200, SWT.DEFAULT).align(SWT.LEFT, SWT.TOP).create());
+                GridDataFactory.fillDefaults().hint(getInitialSize().x, SWT.DEFAULT).align(SWT.LEFT, SWT.TOP).create());
 
         btnOverrideTestCaseDescription = new Button(jiraIssueKeyContainer, SWT.CHECK);
         btnOverrideTestCaseDescription.setText(ComposerJiraIntegrationMessageConstant.BTN_OVERRIDE_TEST_CASE_DESCRIPTION_LABEL);
@@ -110,7 +112,7 @@ public class JiraIssueLinkDialog extends TitleAreaDialog implements JiraUICompon
         lblOperationError.setBackground(parent.getBackground());
         lblOperationError.setLayoutData(
                 GridDataFactory.fillDefaults()
-                        .hint(getInitialSize().x, SWT.DEFAULT)
+                        .hint(jiraIssueKeyContainer.getSize().x, SWT.DEFAULT)
                         .align(SWT.FILL, SWT.CENTER).grab(true, false).create());
 
         toggleLoading(false);
@@ -239,6 +241,8 @@ public class JiraIssueLinkDialog extends TitleAreaDialog implements JiraUICompon
 
             if (e instanceof JiraInvalidURLException) {
                 display.syncExec(() -> showError(ComposerJiraIntegrationMessageConstant.LBL_JIRA_ISSUE_NOT_EXISTING_TEXT));
+            } else if (e instanceof InvalidPropertiesFormatException) {
+                display.syncExec(() -> showError("Invalid Jira issue key. " + e.getMessage()));
             }
             else {
                 String displayMessage = e.getMessage();

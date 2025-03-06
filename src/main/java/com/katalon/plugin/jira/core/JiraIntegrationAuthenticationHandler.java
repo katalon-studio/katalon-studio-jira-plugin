@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.katalon.platform.api.report.TestCaseRecord;
 import com.katalon.platform.api.report.TestSuiteRecord;
+import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
 import com.katalon.plugin.jira.core.constant.StringConstants;
 import com.katalon.plugin.jira.core.entity.*;
 import com.katalon.plugin.jira.core.issue.IssueMetaDataProvider;
@@ -21,10 +22,7 @@ import org.joda.time.DateTime;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest {
 
@@ -34,7 +32,8 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
         return getJiraObject(credential, JiraAPIURL.getUserAPIUrl(credential), User.class);
     }
 
-    public JiraIssue getJiraIssue(JiraCredential credential, String issueKey) throws JiraIntegrationException {
+    public JiraIssue getJiraIssue(JiraCredential credential, String issueKey) throws JiraIntegrationException, InvalidPropertiesFormatException {
+        ValidateIssueKey(issueKey);
         return getJiraObject(credential, JiraAPIURL.getIssueAPIUrl(credential) + "/" + issueKey, JiraIssue.class);
     }
 
@@ -121,5 +120,39 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
                 .filter(field -> field.getSchema() != null
                         && StringConstants.KATALON_CUSTOM_FIELD_ID.equals(field.getSchema().getCustom()))
                 .findFirst();
+    }
+
+    private void ValidateIssueKey(String issueKey) throws InvalidPropertiesFormatException {
+        if (issueKey == null || issueKey.isEmpty()) {
+            throw new InvalidPropertiesFormatException("The issue key is null or empty.");
+        }
+
+        // Regex patterns
+        String issueKeyPattern = "^([A-Z][A-Z0-9_]*)-(\\d+)$"; // Full issue pattern <project key>-<issue number>
+
+        if (!issueKey.matches(issueKeyPattern)) {
+            // Determine which part of the key is invalid
+            String[] parts = issueKey.split("-");
+            if (parts.length != 2) {
+                throw new InvalidPropertiesFormatException("Key must contain exactly one hyphen separating the project key and issue number.");
+            }
+
+            String projectKey = parts[0];
+            String issueNumber = parts[1];
+
+            if (projectKey.isEmpty() || !Character.isUpperCase(projectKey.charAt(0))) {
+                throw new InvalidPropertiesFormatException("The first character must be an uppercase letter.");
+            }
+
+            for (char c : projectKey.toCharArray()) {
+                if (!Character.isUpperCase(c) && !Character.isDigit(c) && c != '_') {
+                    throw new InvalidPropertiesFormatException("All letters in the project key must be uppercase, and only digits and underscores are allowed.");
+                }
+            }
+
+            if (!issueNumber.matches("\\d+")) {
+                throw new InvalidPropertiesFormatException("The issue number must be a numeric value.");
+            }
+        }
     }
 }
