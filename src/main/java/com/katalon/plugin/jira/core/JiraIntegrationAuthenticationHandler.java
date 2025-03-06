@@ -33,7 +33,7 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
     }
 
     public JiraIssue getJiraIssue(JiraCredential credential, String issueKey) throws JiraIntegrationException, InvalidPropertiesFormatException {
-        ValidateIssueKey(issueKey);
+        validateIssueKey(issueKey);
         return getJiraObject(credential, JiraAPIURL.getIssueAPIUrl(credential) + "/" + issueKey, JiraIssue.class);
     }
 
@@ -122,7 +122,7 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
                 .findFirst();
     }
 
-    private void ValidateIssueKey(String issueKey) throws InvalidPropertiesFormatException {
+    private void validateIssueKey(String issueKey) throws InvalidPropertiesFormatException {
         if (issueKey == null || issueKey.isEmpty()) {
             throw new InvalidPropertiesFormatException("The issue key is null or empty.");
         }
