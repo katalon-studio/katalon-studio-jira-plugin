@@ -32,7 +32,7 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
         return getJiraObject(credential, JiraAPIURL.getUserAPIUrl(credential), User.class);
     }
 
-    public JiraIssue getJiraIssue(JiraCredential credential, String issueKey) throws JiraIntegrationException, InvalidPropertiesFormatException {
+    public JiraIssue getJiraIssue(JiraCredential credential, String issueKey) throws JiraIntegrationException {
         validateIssueKey(issueKey);
         return getJiraObject(credential, JiraAPIURL.getIssueAPIUrl(credential) + "/" + issueKey, JiraIssue.class);
     }
