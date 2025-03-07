@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.katalon.platform.api.report.TestCaseRecord;
 import com.katalon.platform.api.report.TestSuiteRecord;
+import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
 import com.katalon.plugin.jira.core.constant.StringConstants;
 import com.katalon.plugin.jira.core.entity.*;
 import com.katalon.plugin.jira.core.issue.IssueMetaDataProvider;
@@ -21,10 +22,7 @@ import org.joda.time.DateTime;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest {
 
@@ -35,6 +33,7 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
     }
 
     public JiraIssue getJiraIssue(JiraCredential credential, String issueKey) throws JiraIntegrationException {
+        validateIssueKey(issueKey);
         return getJiraObject(credential, JiraAPIURL.getIssueAPIUrl(credential) + "/" + issueKey, JiraIssue.class);
     }
 
@@ -121,5 +120,46 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
                 .filter(field -> field.getSchema() != null
                         && StringConstants.KATALON_CUSTOM_FIELD_ID.equals(field.getSchema().getCustom()))
                 .findFirst();
+    }
+
+    private void validateIssueKey(String issueKey) throws JiraIntegrationException {
+        String errorMsg = StringUtils.EMPTY;
+
+        if (issueKey == null || issueKey.isEmpty()) {
+            errorMsg = "The issue key is null or empty.";
+        } else {
+            // Regex patterns
+            String issueKeyPattern = "^([A-Z][A-Z0-9_]*)-(\\d+)$"; // Full issue pattern <project key>-<issue number>
+
+            if (!issueKey.matches(issueKeyPattern)) {
+                // Determine which part of the key is invalid
+                String[] parts = issueKey.split("-");
+                if (parts.length != 2) {
+                    errorMsg = "Key must contain exactly one hyphen separating the project key and issue number.";
+                } else {
+                    String projectKey = parts[0];
+                    String issueNumber = parts[1];
+
+                    if (projectKey.isEmpty() || !Character.isUpperCase(projectKey.charAt(0))) {
+                        errorMsg = "The first character must be an uppercase letter.";
+                    }
+                    else if (!issueNumber.matches("\\d+")) {
+                        errorMsg = "The issue number must be a numeric value.";
+                    }
+                    else {
+                        for (char c : projectKey.toCharArray()) {
+                            if (!Character.isUpperCase(c) && !Character.isDigit(c) && c != '_') {
+                                errorMsg = "All letters in the project key must be uppercase, and only digits and underscores are allowed.";
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!errorMsg.isEmpty()) {
+            throw new JiraIntegrationException(new InvalidPropertiesFormatException(errorMsg));
+        }
     }
 }
