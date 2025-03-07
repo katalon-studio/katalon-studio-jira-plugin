@@ -123,36 +123,43 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
     }
 
     private void validateIssueKey(String issueKey) throws JiraIntegrationException {
+        String errorMsg = StringUtils.EMPTY;
+
         if (issueKey == null || issueKey.isEmpty()) {
-            throw new JiraIntegrationException(new InvalidPropertiesFormatException("The issue key is null or empty."));
-        }
+            errorMsg = "The issue key is null or empty.";
+        } else {
+            // Regex patterns
+            String issueKeyPattern = "^([A-Z][A-Z0-9_]*)-(\\d+)$"; // Full issue pattern <project key>-<issue number>
 
-        // Regex patterns
-        String issueKeyPattern = "^([A-Z][A-Z0-9_]*)-(\\d+)$"; // Full issue pattern <project key>-<issue number>
+            if (!issueKey.matches(issueKeyPattern)) {
+                // Determine which part of the key is invalid
+                String[] parts = issueKey.split("-");
+                if (parts.length != 2) {
+                    errorMsg = "Key must contain exactly one hyphen separating the project key and issue number.";
+                } else {
+                    String projectKey = parts[0];
+                    String issueNumber = parts[1];
 
-        if (!issueKey.matches(issueKeyPattern)) {
-            // Determine which part of the key is invalid
-            String[] parts = issueKey.split("-");
-            if (parts.length != 2) {
-                throw new JiraIntegrationException(new InvalidPropertiesFormatException("Key must contain exactly one hyphen separating the project key and issue number."));
-            }
-
-            String projectKey = parts[0];
-            String issueNumber = parts[1];
-
-            if (projectKey.isEmpty() || !Character.isUpperCase(projectKey.charAt(0))) {
-                throw new JiraIntegrationException(new InvalidPropertiesFormatException("The first character must be an uppercase letter."));
-            }
-
-            for (char c : projectKey.toCharArray()) {
-                if (!Character.isUpperCase(c) && !Character.isDigit(c) && c != '_') {
-                    throw new JiraIntegrationException(new InvalidPropertiesFormatException("All letters in the project key must be uppercase, and only digits and underscores are allowed."));
+                    if (projectKey.isEmpty() || !Character.isUpperCase(projectKey.charAt(0))) {
+                        errorMsg = "The first character must be an uppercase letter.";
+                    }
+                    else if (!issueNumber.matches("\\d+")) {
+                        errorMsg = "The issue number must be a numeric value.";
+                    }
+                    else {
+                        for (char c : projectKey.toCharArray()) {
+                            if (!Character.isUpperCase(c) && !Character.isDigit(c) && c != '_') {
+                                errorMsg = "All letters in the project key must be uppercase, and only digits and underscores are allowed.";
+                                break;
+                            }
+                        }
+                    }
                 }
             }
+        }
 
-            if (!issueNumber.matches("\\d+")) {
-                throw new JiraIntegrationException(new InvalidPropertiesFormatException("The issue number must be a numeric value."));
-            }
+        if (!errorMsg.isEmpty()) {
+            throw new JiraIntegrationException(new InvalidPropertiesFormatException(errorMsg));
         }
     }
 }
