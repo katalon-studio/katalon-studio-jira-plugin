@@ -122,9 +122,9 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
                 .findFirst();
     }
 
-    private void validateIssueKey(String issueKey) throws InvalidPropertiesFormatException {
+    private void validateIssueKey(String issueKey) throws JiraIntegrationException {
         if (issueKey == null || issueKey.isEmpty()) {
-            throw new InvalidPropertiesFormatException("The issue key is null or empty.");
+            throw new JiraIntegrationException(new InvalidPropertiesFormatException("The issue key is null or empty."));
         }
 
         // Regex patterns
@@ -134,24 +134,24 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
             // Determine which part of the key is invalid
             String[] parts = issueKey.split("-");
             if (parts.length != 2) {
-                throw new InvalidPropertiesFormatException("Key must contain exactly one hyphen separating the project key and issue number.");
+                throw new JiraIntegrationException(new InvalidPropertiesFormatException("Key must contain exactly one hyphen separating the project key and issue number."));
             }
 
             String projectKey = parts[0];
             String issueNumber = parts[1];
 
             if (projectKey.isEmpty() || !Character.isUpperCase(projectKey.charAt(0))) {
-                throw new InvalidPropertiesFormatException("The first character must be an uppercase letter.");
+                throw new JiraIntegrationException(new InvalidPropertiesFormatException("The first character must be an uppercase letter."));
             }
 
             for (char c : projectKey.toCharArray()) {
                 if (!Character.isUpperCase(c) && !Character.isDigit(c) && c != '_') {
-                    throw new InvalidPropertiesFormatException("All letters in the project key must be uppercase, and only digits and underscores are allowed.");
+                    throw new JiraIntegrationException(new InvalidPropertiesFormatException("All letters in the project key must be uppercase, and only digits and underscores are allowed."));
                 }
             }
 
             if (!issueNumber.matches("\\d+")) {
-                throw new InvalidPropertiesFormatException("The issue number must be a numeric value.");
+                throw new JiraIntegrationException(new InvalidPropertiesFormatException("The issue number must be a numeric value."));
             }
         }
     }

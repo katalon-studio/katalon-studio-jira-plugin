@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import java.util.InvalidPropertiesFormatException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -241,8 +242,6 @@ public class JiraIssueLinkDialog extends TitleAreaDialog implements JiraUICompon
 
             if (e instanceof JiraInvalidURLException) {
                 display.syncExec(() -> showError(ComposerJiraIntegrationMessageConstant.LBL_JIRA_ISSUE_NOT_EXISTING_TEXT));
-            } else if (e instanceof InvalidPropertiesFormatException) {
-                display.syncExec(() -> showError("Invalid Jira issue key. " + e.getMessage()));
             }
             else {
                 String displayMessage = e.getMessage();
@@ -250,6 +249,13 @@ public class JiraIssueLinkDialog extends TitleAreaDialog implements JiraUICompon
                     // threw by the invocation from Consumer<JiraIssueLinkDialog. Result>
                     if (e.getCause() instanceof JiraIntegrationException) {
                         displayMessage = String.format("Error on linking the test case to JIRA issue key %s: %s", issueKey, e.getCause().getMessage());
+                    }
+                }
+                else {
+                    if (Objects.nonNull(e.getCause())) {
+                        if (e.getCause() instanceof InvalidPropertiesFormatException) {
+                            displayMessage = "Invalid Jira issue key. " + e.getCause().getMessage();
+                        }
                     }
                 }
 
