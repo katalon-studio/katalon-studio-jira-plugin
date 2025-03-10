@@ -118,7 +118,11 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
 
         btnEditJiraIssueLink = new Button(displayKeyContainer, SWT.PUSH);
         btnEditJiraIssueLink.setText(ComposerJiraIntegrationMessageConstant.BTN_EDIT_JIRA_ISSUE_LINK_LABEL);
-        btnEditJiraIssueLink.setLayoutData(GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).create());
+        GridData editButtonLayoutData = GridDataFactory.fillDefaults()
+                .align(SWT.CENTER, SWT.CENTER)
+                .indent(10, 0)
+                .create();
+        btnEditJiraIssueLink.setLayoutData(editButtonLayoutData);
 
         Label lblSummary = new Label(container, SWT.NONE);
         lblSummary.setLayoutData(GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.TOP).create());
