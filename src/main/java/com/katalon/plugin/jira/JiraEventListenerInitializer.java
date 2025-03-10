@@ -40,7 +40,8 @@ public class JiraEventListenerInitializer implements EventListenerInitializer, J
                     return;
                 }
 
-                if (ExecutionEvent.TEST_SUITE_FINISHED_EVENT.equals(event.getTopic())) {
+                boolean isSubmitTestResultAutomatically = preferences.isSubmitTestResultAutomatically();
+                if (isSubmitTestResultAutomatically && ExecutionEvent.TEST_SUITE_FINISHED_EVENT.equals(event.getTopic())) {
                     ExecutionEvent eventObject = (ExecutionEvent) event.getProperty("org.eclipse.e4.data");
 
                     updateExecutionResult((TestSuiteExecutionContext) eventObject
