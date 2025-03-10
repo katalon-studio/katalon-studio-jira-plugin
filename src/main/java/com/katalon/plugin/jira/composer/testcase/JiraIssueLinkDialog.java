@@ -77,7 +77,6 @@ public class JiraIssueLinkDialog extends TitleAreaDialog implements JiraUICompon
     @Override
     protected Control createDialogArea(Composite parent) {
         setMessage(ComposerJiraIntegrationMessageConstant.DIA_MESSAGE_LINK_TO_EXISTING_ISSUE, IMessageProvider.INFORMATION);
-        setTitle(getDialogTitle());
 
         Composite composite = (Composite) super.createDialogArea(parent);
         Composite mainComposite = new Composite(composite, SWT.NONE);
