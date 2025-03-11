@@ -38,12 +38,13 @@ import java.util.Optional;
 public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseIntegrationView {
     private final Logger logger = (Logger)LoggerFactory.getLogger(JiraTestCaseIntegrationView.class);
 
+    private ScrolledComposite scrolledComposite;
     private  Composite container;
 
     private Link lblDisplayKey;
     private Label lblDisplaySummary;
     private Label lblDisplayStatus;
-    private Text lblDisplayDiscription;
+    private Label lblDisplayDescription;
 
     private Optional<JiraIssue> linkedJiraIssue;
     private JiraIntegrationAuthenticationHandler authenticationHandler;
@@ -60,7 +61,7 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         loadJiraIssueLink();
         authenticationHandler = new JiraIntegrationAuthenticationHandler();
 
-        ScrolledComposite scrolledComposite = new ScrolledComposite(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+        scrolledComposite = new ScrolledComposite(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
         scrolledComposite.setExpandHorizontal(true);
         scrolledComposite.setExpandVertical(true);
 
@@ -72,31 +73,9 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         scrolledComposite.setContent(container);
 
         createUIComponents();
-
         scrolledComposite.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
-        container.addListener(SWT.Resize, e ->
-                scrolledComposite.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT)));
-
-        addMouseWheelListener(container, scrolledComposite);
-
         return scrolledComposite;
-    }
-
-    private void addMouseWheelListener(Control control, ScrolledComposite scrolledComposite) {
-        control.addListener(SWT.MouseVerticalWheel, event -> {
-            int scrollLines = -event.count;
-            scrolledComposite.setOrigin(
-                    scrolledComposite.getOrigin().x,
-                    scrolledComposite.getOrigin().y + scrollLines * 10);
-            event.doit = false;
-        });
-
-        if (control instanceof Composite) {
-            for (Control child : ((Composite) control).getChildren()) {
-                addMouseWheelListener(child, scrolledComposite);
-            }
-        }
     }
 
     private void createUIComponents() {
@@ -142,15 +121,8 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         lblDescription.setLayoutData(GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.TOP).create());
         lblDescription.setText(StringConstants.DESCRIPTION);
 
-
-        lblDisplayDiscription = new Text(container, SWT.WRAP | SWT.READ_ONLY | SWT.MULTI);
-
-        lblDisplayDiscription.setLayoutData(
-                GridDataFactory.fillDefaults()
-                        .align(SWT.FILL, SWT.FILL)
-                        .grab(true, false)
-                        .hint(SWT.DEFAULT, SWT.DEFAULT)
-                        .create());
+        lblDisplayDescription = new Label(container, SWT.WRAP);
+        lblDisplayDescription.setLayoutData(GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).create());
 
         registerControlEvents();
         renderTestCase();
@@ -213,9 +185,9 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         Issue fields = issue.getFields();
         lblDisplaySummary.setText(StringUtils.defaultString(fields.getSummary()));
         lblDisplayStatus.setText(StringUtils.defaultString(fields.getStatus().getName()));
-        lblDisplayDiscription.setText(StringUtils.defaultString(fields.getDescription()));
+        lblDisplayDescription.setText(StringUtils.defaultString(fields.getDescription()));
 
-        Composite descriptionParent = lblDisplayDiscription.getParent();
+        Composite descriptionParent = lblDisplayDescription.getParent();
         descriptionParent.layout();
     }
 
