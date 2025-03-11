@@ -18,6 +18,7 @@ import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -37,12 +38,13 @@ import java.util.Optional;
 public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseIntegrationView {
     private final Logger logger = (Logger)LoggerFactory.getLogger(JiraTestCaseIntegrationView.class);
 
+    private ScrolledComposite scrolledComposite;
     private  Composite container;
 
     private Link lblDisplayKey;
     private Label lblDisplaySummary;
     private Label lblDisplayStatus;
-    private Label lblDisplayDiscription;
+    private Label lblDisplayDescription;
 
     private Optional<JiraIssue> linkedJiraIssue;
     private JiraIntegrationAuthenticationHandler authenticationHandler;
@@ -59,11 +61,24 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         loadJiraIssueLink();
         authenticationHandler = new JiraIntegrationAuthenticationHandler();
 
-        container = new Composite(parent, SWT.BORDER);
+        scrolledComposite = new ScrolledComposite(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+        scrolledComposite.setExpandHorizontal(true);
+        scrolledComposite.setExpandVertical(true);
+
+        container = new Composite(scrolledComposite, SWT.NONE);
         container.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_WHITE));
         container.setBackgroundMode(SWT.INHERIT_FORCE);
         container.setLayout(GridLayoutFactory.fillDefaults().numColumns(2).spacing(15, 10).create());
 
+        scrolledComposite.setContent(container);
+
+        createUIComponents();
+        scrolledComposite.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+        return scrolledComposite;
+    }
+
+    private void createUIComponents() {
         Label lblKey = new Label(container, SWT.NONE);
         lblKey.setLayoutData(GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.CENTER).create());
         lblKey.setText(ComposerJiraIntegrationMessageConstant.VIEW_LBL_KEY);
@@ -82,7 +97,11 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
 
         btnEditJiraIssueLink = new Button(displayKeyContainer, SWT.PUSH);
         btnEditJiraIssueLink.setText(ComposerJiraIntegrationMessageConstant.BTN_EDIT_JIRA_ISSUE_LINK_LABEL);
-        btnEditJiraIssueLink.setLayoutData(GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).create());
+        GridData editButtonLayoutData = GridDataFactory.fillDefaults()
+                .align(SWT.CENTER, SWT.CENTER)
+                .indent(10, 0)
+                .create();
+        btnEditJiraIssueLink.setLayoutData(editButtonLayoutData);
 
         Label lblSummary = new Label(container, SWT.NONE);
         lblSummary.setLayoutData(GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.TOP).create());
@@ -102,13 +121,11 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         lblDescription.setLayoutData(GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.TOP).create());
         lblDescription.setText(StringConstants.DESCRIPTION);
 
-        lblDisplayDiscription = new Label(container, SWT.WRAP);
-        lblDisplayDiscription.setLayoutData(GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).create());
+        lblDisplayDescription = new Label(container, SWT.WRAP);
+        lblDisplayDescription.setLayoutData(GridDataFactory.fillDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).create());
 
         registerControlEvents();
         renderTestCase();
-
-        return container;
     }
 
     private void changeUiControlVisibilityWithJiraIssueLinkStage() {
@@ -168,9 +185,9 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         Issue fields = issue.getFields();
         lblDisplaySummary.setText(StringUtils.defaultString(fields.getSummary()));
         lblDisplayStatus.setText(StringUtils.defaultString(fields.getStatus().getName()));
-        lblDisplayDiscription.setText(StringUtils.defaultString(fields.getDescription()));
+        lblDisplayDescription.setText(StringUtils.defaultString(fields.getDescription()));
 
-        Composite descriptionParent = lblDisplayDiscription.getParent();
+        Composite descriptionParent = lblDisplayDescription.getParent();
         descriptionParent.layout();
     }
 
