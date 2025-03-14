@@ -238,6 +238,9 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
 
         parent.layout();
         parent.pack();
+
+        //set new composite size to scrolledComposite
+        scrolledComposite.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
     }
 
     private void renderTestCase() {
