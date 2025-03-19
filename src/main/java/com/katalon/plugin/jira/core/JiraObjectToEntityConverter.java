@@ -71,6 +71,16 @@ public class JiraObjectToEntityConverter {
         }
     }
 
+    public static TestCaseEntity removeTestCaseJiraIssueLink(TestCaseEntity testCase)
+            throws JiraIntegrationException {
+        try {
+            return PlatformUtil.getPlatformController(TestCaseController.class)
+                    .removeIntegration(PlatformUtil.getCurrentProject(), testCase, StringConstants.JIRA_NAME);
+        } catch (ResourceException e) {
+            throw new JiraIntegrationException(e);
+        }
+    }
+
     public static Optional<JiraIssueCollection> getOptionalJiraIssueCollection(ReportEntity report,
             int testCaseLogIndex) {
         return getOptionalJiraReport(report)
