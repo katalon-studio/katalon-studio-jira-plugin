@@ -1,8 +1,11 @@
 package com.katalon.plugin.jira.composer.testcase;
 
+import ch.qos.logback.classic.Logger;
 import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.katalon.platform.api.controller.TestCaseController;
 import com.katalon.platform.api.extension.TestCaseIntegrationViewDescription.PartActionService;
 import com.katalon.platform.api.extension.TestCaseIntegrationViewDescription.TestCaseIntegrationView;
+import com.katalon.platform.api.model.ProjectEntity;
 import com.katalon.platform.api.model.TestCaseEntity;
 import com.katalon.plugin.jira.composer.JiraUIComponent;
 import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
@@ -15,7 +18,10 @@ import com.katalon.plugin.jira.core.JiraObjectToEntityConverter;
 import com.katalon.plugin.jira.core.entity.JiraIssue;
 import com.katalon.plugin.jira.core.issue.UpdateTestCaseIssueDescription;
 import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
+import com.katalon.plugin.jira.core.util.PlatformUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -26,9 +32,8 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
-import ch.qos.logback.classic.Logger;
 import org.slf4j.LoggerFactory;
-import org.eclipse.jface.layout.GridDataFactory;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
@@ -55,6 +60,8 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
 
     private Button btnEditJiraIssueLink;
 
+    private ToolBar btnRemoveJiraIssueLink;
+
     @Override
     public Control onCreateView(Composite parent, PartActionService partActionService, TestCaseEntity testCaseEntity) {
         testCaseModel = testCaseEntity;
@@ -68,7 +75,7 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         container = new Composite(scrolledComposite, SWT.NONE);
         container.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_WHITE));
         container.setBackgroundMode(SWT.INHERIT_FORCE);
-        container.setLayout(GridLayoutFactory.fillDefaults().numColumns(2).spacing(15, 10).create());
+        container.setLayout(GridLayoutFactory.fillDefaults().numColumns(2).spacing(15, 10).margins(10, 0).create());
 
         scrolledComposite.setContent(container);
 
@@ -103,6 +110,17 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
                 .create();
         btnEditJiraIssueLink.setLayoutData(editButtonLayoutData);
 
+        // Button don't support to remove the border, we can use a ToolBar with 1 Item to simulate a Button
+        btnRemoveJiraIssueLink = new ToolBar(displayKeyContainer, SWT.FLAT);
+        ToolItem item = new ToolItem(btnRemoveJiraIssueLink, SWT.PUSH);
+        item.setText(ComposerJiraIntegrationMessageConstant.BTN_REMOVE_JIRA_ISSUE_LINK_LABEL);
+        item.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+        GridData removeButtonLayoutData = GridDataFactory.fillDefaults()
+                .align(SWT.CENTER, SWT.CENTER)
+                .indent(10, 0)
+                .create();
+        btnRemoveJiraIssueLink.setLayoutData(removeButtonLayoutData);
+
         Label lblSummary = new Label(container, SWT.NONE);
         lblSummary.setLayoutData(GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.TOP).create());
         lblSummary.setText(StringConstants.SUMMARY);
@@ -133,6 +151,7 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         setControlVisibility(lblDisplayKey, jiraIssueLinked);
         setControlVisibility(btnLinkJiraIssue, !jiraIssueLinked);
         setControlVisibility(btnEditJiraIssueLink, jiraIssueLinked);
+        setControlVisibility(btnRemoveJiraIssueLink, jiraIssueLinked && isEnableRemoveIntegration());
     }
 
     private void setControlVisibility(Control control, boolean visible) {
@@ -165,6 +184,15 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
             }
         });
 
+        // Add event handler for btnRemoveJiraIssueLink
+        ToolItem removeItem = btnRemoveJiraIssueLink.getItem(0);
+        removeItem.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                onRemovingToJiraIssue();
+            }
+        });
+
         btnEditJiraIssueLink.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -179,13 +207,19 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
     private void populateJiraFieldValues() {
         ControlUtil.recursiveSetEnabled(container, linkedJiraIssue.isPresent());
 
-        JiraIssue issue = linkedJiraIssue.get();
-        lblDisplayKey.setText("<a>" + issue.getKey() + "</a>");
-
-        Issue fields = issue.getFields();
-        lblDisplaySummary.setText(StringUtils.defaultString(fields.getSummary()));
-        lblDisplayStatus.setText(StringUtils.defaultString(fields.getStatus().getName()));
-        lblDisplayDescription.setText(StringUtils.defaultString(fields.getDescription()));
+        if (!linkedJiraIssue.isPresent()) {
+            lblDisplayKey.setText(StringUtils.EMPTY);
+            lblDisplaySummary.setText(StringUtils.EMPTY);
+            lblDisplayStatus.setText(StringUtils.defaultString(StringUtils.EMPTY));
+            lblDisplayDescription.setText(StringUtils.defaultString(StringUtils.EMPTY));
+        } else {
+            JiraIssue issue = linkedJiraIssue.get();
+            lblDisplayKey.setText("<a>" + issue.getKey() + "</a>");
+            Issue fields = issue.getFields();
+            lblDisplaySummary.setText(StringUtils.defaultString(fields.getSummary()));
+            lblDisplayStatus.setText(StringUtils.defaultString(fields.getStatus().getName()));
+            lblDisplayDescription.setText(StringUtils.defaultString(fields.getDescription()));
+        }
 
         Composite descriptionParent = lblDisplayDescription.getParent();
         descriptionParent.layout();
@@ -226,6 +260,25 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         renderTestCase();
     }
 
+    private void onRemovingToJiraIssue() {
+        try {
+            boolean result = openConfirmDialog(btnRemoveJiraIssueLink.getShell(), ComposerJiraIntegrationMessageConstant.BTN_REMOVE_JIRA_ISSUE_LINK_LABEL,
+                    String.format("The link between this test case and the Jira issue %s will be removed. Are you sure you want to proceed?",
+                            linkedJiraIssue.get().getKey()));
+            if (result)
+                testCaseModel = JiraObjectToEntityConverter.removeTestCaseJiraIssueLink(testCaseModel);
+        }
+        catch (JiraIntegrationException e) {
+            // Turn checked exception to unchecked one to comply
+            // with the Consumer interface
+            throw new RuntimeException(e);
+        }
+
+        // Reload the UI to reflect the test case has been linked to JIRA issue
+        loadJiraIssueLink();
+        renderTestCase();
+    }
+
     private void loadJiraIssueLink() {
         linkedJiraIssue = Optional.ofNullable(JiraObjectToEntityConverter.getJiraIssue(testCaseModel));
     }
@@ -247,5 +300,29 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         changeUiControlVisibilityWithJiraIssueLinkStage();
         populateJiraFieldValues();
         redrawJiraIssueKeyColumn();
+    }
+
+    private boolean isEnableRemoveIntegration() {
+        try {
+            PlatformUtil.getPlatformController(TestCaseController.class)
+                    .getClass().getMethod("removeIntegration", ProjectEntity.class, TestCaseEntity.class, String.class);
+            return true;
+        } catch (NoSuchMethodException e) {
+            logger.warn("This Katalon Studio version does not support removeIntegration method");
+            return false;
+        }
+    }
+
+    private boolean openConfirmDialog(Shell parent, String title, String message) {
+        MessageDialog dialog = new MessageDialog(
+                parent,
+                title,
+                null, // image
+                message,
+                MessageDialog.QUESTION,
+                new String[] {"Remove", "Cancel"},
+                0); // 0 is the index of Remove button
+
+        return dialog.open() == 0; // return true if user clicks Remove button
     }
 }
