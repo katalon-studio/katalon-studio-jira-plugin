@@ -153,7 +153,7 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         setControlVisibility(lblDisplayKey, jiraIssueLinked);
         setControlVisibility(btnLinkJiraIssue, !jiraIssueLinked);
         setControlVisibility(btnEditJiraIssueLink, jiraIssueLinked);
-        setControlVisibility(btnRemoveJiraIssueLink, jiraIssueLinked);
+        setControlVisibility(btnRemoveJiraIssueLink, jiraIssueLinked && isEnableRemoveIntegration());
     }
 
     private void setControlVisibility(Control control, boolean visible) {
@@ -186,7 +186,7 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
             }
         });
 
-            // Add event handler for btnRemoveJiraIssueLink
+        // Add event handler for btnRemoveJiraIssueLink
         ToolItem removeItem = btnRemoveJiraIssueLink.getItem(0);
         removeItem.addSelectionListener(new SelectionAdapter() {
             @Override
