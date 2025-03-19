@@ -12,8 +12,4 @@ public class Theme {
     public static Color getErrorColor() {
         return Display.getCurrent().getSystemColor(SWT.COLOR_RED);
     }
-
-    public static Color removeButtonColor() {
-        return Display.getCurrent().getSystemColor(SWT.COLOR_RED);
-    }
 }

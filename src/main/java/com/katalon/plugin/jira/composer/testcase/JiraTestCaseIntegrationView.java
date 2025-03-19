@@ -11,7 +11,6 @@ import com.katalon.plugin.jira.composer.JiraUIComponent;
 import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
 import com.katalon.plugin.jira.composer.constant.StringConstants;
 import com.katalon.plugin.jira.composer.util.ControlUtil;
-import com.katalon.plugin.jira.composer.util.Theme;
 import com.katalon.plugin.jira.core.JiraCredential;
 import com.katalon.plugin.jira.core.JiraIntegrationAuthenticationHandler;
 import com.katalon.plugin.jira.core.JiraIntegrationException;
@@ -42,7 +41,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseIntegrationView {
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(JiraTestCaseIntegrationView.class);
     private final Logger logger = (Logger)LoggerFactory.getLogger(JiraTestCaseIntegrationView.class);
 
     private ScrolledComposite scrolledComposite;
@@ -116,7 +114,7 @@ public class JiraTestCaseIntegrationView implements JiraUIComponent, TestCaseInt
         btnRemoveJiraIssueLink = new ToolBar(displayKeyContainer, SWT.FLAT);
         ToolItem item = new ToolItem(btnRemoveJiraIssueLink, SWT.PUSH);
         item.setText(ComposerJiraIntegrationMessageConstant.BTN_REMOVE_JIRA_ISSUE_LINK_LABEL);
-        item.setForeground(Theme.removeButtonColor());
+        item.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
         GridData removeButtonLayoutData = GridDataFactory.fillDefaults()
                 .align(SWT.CENTER, SWT.CENTER)
                 .indent(10, 0)
