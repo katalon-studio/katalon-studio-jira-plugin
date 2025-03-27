@@ -17,6 +17,7 @@ import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
@@ -58,7 +59,7 @@ public class JiraIssueLinkDialog extends TitleAreaDialog implements JiraUICompon
 
     private Label lblLoadingProgress;
 
-    private Text lblOperationError;
+    private StyledText lblOperationError;
 
     private final Optional<String> linkedIssueKey;
 
@@ -107,13 +108,14 @@ public class JiraIssueLinkDialog extends TitleAreaDialog implements JiraUICompon
                 GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.CENTER).create());
 
         // The Label doesn't support wrapping text
-        lblOperationError = new Text(jiraIssueKeyContainer, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP);
+        lblOperationError = new StyledText(jiraIssueKeyContainer, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP);
         lblOperationError.setForeground(Theme.getErrorColor());
         lblOperationError.setBackground(parent.getBackground());
         lblOperationError.setLayoutData(
                 GridDataFactory.fillDefaults()
                         .hint(jiraIssueKeyContainer.getSize().x, SWT.DEFAULT)
                         .align(SWT.FILL, SWT.CENTER).grab(true, false).create());
+        lblOperationError.setCaret(null); // Removes the text cursor
 
         toggleLoading(false);
         hideError();
