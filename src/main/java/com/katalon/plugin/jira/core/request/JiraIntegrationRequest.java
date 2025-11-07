@@ -123,17 +123,18 @@ public class JiraIntegrationRequest {
         }
     }
 
-    public void sendPostRequest(JiraCredential credential, String url, String content) throws JiraIntegrationException {
+    public String sendPostRequest(JiraCredential credential, String url, String content) throws JiraIntegrationException {
         try (CloseableHttpClient httpClient = getClientBuilder()) {
             HttpPost post = new HttpPost(url);
             addAuthenticationHeader(credential, post);
             post.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
             post.setEntity(new StringEntity(content));
-            getResultFromRequest(httpClient, post);
+            return getResultFromRequest(httpClient, post);
         } catch (IllegalArgumentException e) {
             throw new JiraIntegrationException(e);
         } catch (GeneralSecurityException e) {
             logger.error(e.getMessage());
+           return StringUtils.EMPTY;
         } catch (JiraIntegrationException e) {
             throw e;
         } catch (IOException e) {
@@ -220,7 +221,8 @@ public class JiraIntegrationRequest {
                     throw new JiraInvalidURLException(JiraIntegrationMessageConstants.MSG_INVALID_SERVER_URL);
                 default:
                     throw new JiraIntegrationException(MessageFormat
-                            .format(JiraIntegrationMessageConstants.MSG_INVALID_REQUEST, request.getURI().toString()));
+                            .format(JiraIntegrationMessageConstants.MSG_INVALID_REQUEST, request.getURI().toString(),
+                                    getBodyString(response)));
             }
         } catch (UnknownHostException ex) {
             throw new JiraIntegrationException(JiraIntegrationMessageConstants.MSG_INVALID_SERVER_URL, ex);

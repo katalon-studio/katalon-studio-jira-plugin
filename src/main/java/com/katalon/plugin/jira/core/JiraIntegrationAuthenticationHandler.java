@@ -6,7 +6,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.katalon.platform.api.report.TestCaseRecord;
 import com.katalon.platform.api.report.TestSuiteRecord;
-import com.katalon.plugin.jira.composer.constant.ComposerJiraIntegrationMessageConstant;
 import com.katalon.plugin.jira.core.constant.StringConstants;
 import com.katalon.plugin.jira.core.entity.*;
 import com.katalon.plugin.jira.core.issue.IssueMetaDataProvider;
@@ -23,6 +22,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest {
 
@@ -68,13 +68,32 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
 
     public JiraFilter getJiraFilterByJql(JiraCredential credential, String jql)
             throws JiraIntegrationException, UnsupportedEncodingException {
-        String result = getJiraResponse(credential,
-                JiraAPIURL.getFilterByJqlUrl(credential) + URLEncoder.encode(jql, UTF_8));
+        String result = getJiraResponse(credential, JiraAPIURL.getFilterByJqlUrl(credential) + URLEncoder.encode(jql, UTF_8));
+        Gson gson = new GsonBuilder().registerTypeAdapter(DateTime.class, new JiraDateDeserializer())
+                .registerTypeAdapter(ImprovedIssue.class, new ImprovedIssueDeserializer())
+                .create();
+        JiraFilter filter = gson.fromJson(result, JiraFilter.class);
+
+        if (credential.isJiraCloud()) {
+            List<String> jiraIssueIds = filter.getIssues().stream().map(i ->
+                    i.getId().toString()).collect(Collectors.toList());
+            JiraIssueBulkFetchResult bulkFetch = getJiraIssuesByIds(credential, jiraIssueIds);
+            filter.setIssues(bulkFetch.getIssues());
+        }
+        return filter;
+    }
+
+    public JiraIssueBulkFetchResult getJiraIssuesByIds(JiraCredential credential, List<String> ids)
+            throws JiraIntegrationException {
+        JiraIssueBulkFetch requestBodyObject = new JiraIssueBulkFetch(ids.toArray(new String[0]));
 
         Gson gson = new GsonBuilder().registerTypeAdapter(DateTime.class, new JiraDateDeserializer())
                 .registerTypeAdapter(ImprovedIssue.class, new ImprovedIssueDeserializer())
                 .create();
-        return gson.fromJson(result, JiraFilter.class);
+        String requestBody = gson.toJson(requestBodyObject);
+
+        String result = sendPostRequest(credential, JiraAPIURL.getIssueBulkFetchAPIUrl(credential), requestBody);
+        return gson.fromJson(result, JiraIssueBulkFetchResult.class);
     }
 
     public void sendKatalonIntegrationProperty(JiraCredential credential, JiraIssue issue, JiraTestResult testResult)

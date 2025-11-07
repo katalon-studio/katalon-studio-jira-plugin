@@ -3,7 +3,7 @@ package com.katalon.plugin.jira.core;
 import org.apache.commons.lang3.StringUtils;
 
 public class JiraAPIURL {
-    public static final String REST_API_V2 = "/rest/api/2/";
+    public static final String REST_API_LATEST = "/rest/api/latest/";
 
     public static final String REST_API_URL_USER = "myself";
 
@@ -19,11 +19,15 @@ public class JiraAPIURL {
 
     public static final String REST_API_URL_SEARCH = "search";
 
-    public static final String REST_API_URL_SEARCH_BY_JQL = "search?maxResults=1000&jql=";
+    public static final String REST_API_URL_SEARCH_BY_JQL = "search/jql?maxResults=1000&jql=";
+
+    public static final String REST_API_SERVER_URL_SEARCH_BY_JQL = "search?maxResults=1000&jql=";
 
     public static final String REST_API_URL_SET_ISSUE_PROPERTY = "properties/katalonTestResult";
 
     public static final String REST_API_URL_FIELD = "field";
+
+    public static final String REST_API_URL_BULK_FETCH = "issue/bulkfetch";
 
     public static String removeLastSplash(String s) {
         if (StringUtils.isEmpty(s)) {
@@ -37,7 +41,7 @@ public class JiraAPIURL {
     }
 
     public static String getJiraAPIPrexfix(JiraCredential credential) {
-        return removeLastSplash(credential.getServerUrl()) + REST_API_V2;
+        return removeLastSplash(credential.getServerUrl()) + REST_API_LATEST;
     }
 
     public static String getUserAPIUrl(JiraCredential credential) {
@@ -65,7 +69,11 @@ public class JiraAPIURL {
     }
 
     public static String getFilterByJqlUrl(JiraCredential credential) {
-        return getJiraAPIPrexfix(credential) + REST_API_URL_SEARCH_BY_JQL;
+        if (credential.isJiraCloud()) {
+            return getJiraAPIPrexfix(credential) + REST_API_URL_SEARCH_BY_JQL;
+        } else {
+            return getJiraAPIPrexfix(credential) + REST_API_SERVER_URL_SEARCH_BY_JQL;
+        }
     }
 
     public static String getKatalonIssuePropertyUrl(JiraCredential credential, String issueId) {
@@ -75,5 +83,9 @@ public class JiraAPIURL {
 
     public static String getFieldAPIUrl(JiraCredential credential) {
         return getJiraAPIPrexfix(credential) + REST_API_URL_FIELD;
+    }
+
+    public static String getIssueBulkFetchAPIUrl(JiraCredential credential) {
+        return getJiraAPIPrexfix(credential) + REST_API_URL_BULK_FETCH;
     }
 }
