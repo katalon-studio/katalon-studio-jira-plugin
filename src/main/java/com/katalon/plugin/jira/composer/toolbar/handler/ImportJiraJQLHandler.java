@@ -28,6 +28,7 @@ import com.katalon.plugin.jira.core.JiraIntegrationException;
 import com.katalon.plugin.jira.core.JiraObjectToEntityConverter;
 import com.katalon.plugin.jira.core.entity.JiraFilter;
 import com.katalon.plugin.jira.core.entity.JiraIssue;
+import com.katalon.plugin.jira.core.entity.JiraIssueBulkFetchResult;
 import com.katalon.plugin.jira.core.issue.NewTestCaseIssueDescription;
 import com.katalon.plugin.jira.core.setting.JiraIntegrationSettingStore;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
@@ -49,7 +50,10 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ImportJiraJQLHandler implements JiraUIComponent {
     
@@ -106,8 +110,11 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
                             credential.getUsername(), credential.getPassword());
                     DateTimeZone.setProvider(new UTCProvider());
 
+                    List<JiraIssue> updatedIssues = updateIssuesWithFetchedCustomFieldContent(credential, issues,
+                            katalonCommentField);
+
                     ableToGetCustomFieldContentFromJiraCloud = true;
-                    for (JiraIssue issue : issues) {
+                    for (JiraIssue issue : updatedIssues) {
                         if (monitor.isCanceled()) {
                             return Status.CANCEL_STATUS;
                         }
@@ -206,5 +213,28 @@ public class ImportJiraJQLHandler implements JiraUIComponent {
         };
         job.setUser(true);
         job.schedule();
+    }
+
+    private List<JiraIssue> updateIssuesWithFetchedCustomFieldContent(JiraCredential credential,
+            List<JiraIssue> issues, Optional<Field> katalonCommentField) throws JiraIntegrationException {
+        if (katalonCommentField.isEmpty()) {
+            return issues;
+        }
+        JiraIntegrationAuthenticationHandler authenticationHandler = new JiraIntegrationAuthenticationHandler();
+        JiraIssueBulkFetchResult bulkFetchResult = authenticationHandler.getJiraIssuesIdsAndCustomField(credential,
+                issues.stream().map(i -> i.getKey()).collect(Collectors.toList()),
+                katalonCommentField.get().getId());
+        // Index fetched issues by key
+        Map<String, JiraIssue> fetchedByKey = bulkFetchResult.getIssues().stream()
+                .collect(Collectors.toMap(JiraIssue::getKey, Function.identity(), (a, b) -> b));
+
+        // Replace in place
+        for (int i = 0; i < issues.size(); i++) {
+            JiraIssue fetched = fetchedByKey.get(issues.get(i).getKey());
+            if (fetched != null) {
+                issues.set(i, fetched);
+            }
+        }
+        return issues;
     }
 }

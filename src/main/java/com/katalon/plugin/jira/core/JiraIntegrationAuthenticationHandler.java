@@ -74,7 +74,7 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
                 .create();
         JiraFilter filter = gson.fromJson(result, JiraFilter.class);
 
-        if (credential.isJiraCloud()) {
+        if (credential.isJiraCloud() && filter.getIssues() != null && !filter.getIssues().isEmpty()) {
             List<String> jiraIssueIds = filter.getIssues().stream().map(i ->
                     i.getId().toString()).collect(Collectors.toList());
             JiraIssueBulkFetchResult bulkFetch = getJiraIssuesByIds(credential, jiraIssueIds);
@@ -86,6 +86,19 @@ public class JiraIntegrationAuthenticationHandler extends JiraIntegrationRequest
     public JiraIssueBulkFetchResult getJiraIssuesByIds(JiraCredential credential, List<String> ids)
             throws JiraIntegrationException {
         JiraIssueBulkFetch requestBodyObject = new JiraIssueBulkFetch(ids.toArray(new String[0]));
+
+        Gson gson = new GsonBuilder().registerTypeAdapter(DateTime.class, new JiraDateDeserializer())
+                .registerTypeAdapter(ImprovedIssue.class, new ImprovedIssueDeserializer())
+                .create();
+        String requestBody = gson.toJson(requestBodyObject);
+
+        String result = sendPostRequest(credential, JiraAPIURL.getIssueBulkFetchAPIUrl(credential), requestBody);
+        return gson.fromJson(result, JiraIssueBulkFetchResult.class);
+    }
+
+    public JiraIssueBulkFetchResult getJiraIssuesIdsAndCustomField(JiraCredential credential, List<String> ids, String customeFieldId)
+            throws JiraIntegrationException {
+        JiraIssueBulkFetch requestBodyObject = new JiraIssueBulkFetch(ids.toArray(new String[0]), customeFieldId);
 
         Gson gson = new GsonBuilder().registerTypeAdapter(DateTime.class, new JiraDateDeserializer())
                 .registerTypeAdapter(ImprovedIssue.class, new ImprovedIssueDeserializer())

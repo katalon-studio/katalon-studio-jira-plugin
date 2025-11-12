@@ -100,6 +100,9 @@ public class ImportJiraJQLDialog extends AbstractDialog implements JiraUICompone
                 try {
                     JiraFilter filter = new JiraIntegrationAuthenticationHandler().getJiraFilterByJql(getCredential(), jql);
                     result.setJiraFilter(filter);
+                    if (filter.getIssues() == null || filter.getIssues().isEmpty()) {
+                        throw new JiraIntegrationException("No issues found with the provided JQL.");
+                    }
                     PlatformUtil.getUIService(UISynchronizeService.class).syncExec(() -> {
                         updateJQLForNextUsage(jql);
                         ImportJiraJQLDialog.super.okPressed();
