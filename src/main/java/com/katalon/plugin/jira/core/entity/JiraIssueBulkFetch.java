@@ -10,6 +10,11 @@ public class JiraIssueBulkFetch {
         this.issueIdsOrKeys = issueIdsOrKeys;
     }
 
+    public JiraIssueBulkFetch(String[] issueIdsOrKeys, String customField) {
+        this.issueIdsOrKeys = issueIdsOrKeys;
+        this.fields = new String[] { "priority", "status", "summary", "description", customField };
+    }
+
     public String[] getFields() {
         return fields;
     }
