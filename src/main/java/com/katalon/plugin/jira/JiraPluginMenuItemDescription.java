@@ -8,15 +8,20 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 
 import com.katalon.platform.api.extension.ToolItemWithMenuDescription;
 import com.katalon.platform.api.ui.DialogActionService;
 import com.katalon.plugin.jira.composer.toolbar.handler.ImportJiraJQLHandler;
 import com.katalon.plugin.jira.core.JiraComponent;
 import com.katalon.plugin.jira.core.constant.StringConstants;
+import com.katalon.plugin.jira.core.util.IconResolver;
 import com.katalon.plugin.jira.core.util.PlatformUtil;
 
 public class JiraPluginMenuItemDescription implements ToolItemWithMenuDescription, JiraComponent {
+
+    private static final Bundle BUNDLE = FrameworkUtil.getBundle(JiraPluginMenuItemDescription.class);
 
     private Menu menu;
 
@@ -32,7 +37,8 @@ public class JiraPluginMenuItemDescription implements ToolItemWithMenuDescriptio
 
     @Override
     public String iconUrl() {
-        return "platform:/plugin/" + StringConstants.JIRA_BUNDLE_ID + "/icons/jira_active_32x24.png";
+        String iconPath = IconResolver.resolve(BUNDLE, "icons/jira_active_32x24.png", "icons-v2/jira.svg");
+        return "platform:/plugin/" + StringConstants.JIRA_BUNDLE_ID + "/" + iconPath;
     }
 
     @Override
