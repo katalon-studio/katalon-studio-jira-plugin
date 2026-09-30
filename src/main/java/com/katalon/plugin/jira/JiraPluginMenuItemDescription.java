@@ -32,7 +32,7 @@ public class JiraPluginMenuItemDescription implements ToolItemWithMenuDescriptio
 
     @Override
     public String iconUrl() {
-        return "platform:/plugin/" + StringConstants.JIRA_BUNDLE_ID + "/icons/jira_active_32x24.png";
+        return "platform:/plugin/" + StringConstants.JIRA_BUNDLE_ID + "/icons-v2/jira.svg";
     }
 
     @Override
